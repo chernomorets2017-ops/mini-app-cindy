@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cindy Car Drive Mods</title>
+    <!-- Подключаем скрипт Telegram Web App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #181818);
+            --text-color: var(--tg-theme-text-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #aaaaaa);
+            --card-bg: var(--tg-theme-secondary-bg-color, #242424);
+            --button-bg: var(--tg-theme-button-color, #248bcf);
+            --button-text: var(--tg-theme-button-text-color, #ffffff);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            margin: 0 0 5px 0;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--hint-color);
+            margin: 0;
+        }
+
+        /* Сетка для карточек модов */
+        .mods-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* По 2 мода в ряд на экране телефона */
+            gap: 12px;
+        }
+
+        .mod-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .mod-img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            background-color: #333;
+        }
+
+        .mod-info {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+
+        .mod-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.2;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .download-btn {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: opacity 0.2s;
+        }
+
+        .download-btn:active {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Cindy Car Mods</h1>
+        <p>Выбирай мод и скачивай файл напрямую</p>
+    </div>
+
+    <div class="mods-grid" id="mods-container">
+        <!-- Моды будут загружаться сюда из JavaScript -->
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем приложение на весь экран
+
+        // БАЗА ДАННЫХ МОДОВ
+        // Просто добавляй сюда новые объекты. Ссылки на картинки и файлы бери прямо с mod.io
+        const modsData = [
+            {
+                title: "Toyota Supra A80 (Stock & Tuned)",
+                image: "https://placehold.co/300x200/242424/ffffff?text=Supra+Img", 
+                fileUrl: "https://mod.io/" // Ссылка на скачивание файла
+            },
+            {
+                title: "Monster Truck XL",
+                image: "https://placehold.co/300x200/242424/ffffff?text=Monster+Img",
+                fileUrl: "https://mod.io/"
+            },
+            {
+                title: "Зимняя карта (Winter Map)",
+                image: "https://placehold.co/300x200/242424/ffffff?text=Map+Img",
+                fileUrl: "https://mod.io/"
+            }
+        ];
+
+        const container = document.getElementById('mods-container');
+
+        // Функция отрисовки карточек
+        function renderMods() {
+            modsData.forEach(mod => {
+                const card = document.createElement('div');
+                card.className = 'mod-card';
+                
+                card.innerHTML = `
+                    <img class="mod-img" src="${mod.image}" alt="${mod.title}">
+                    <div class="mod-info">
+                        <div class="mod-title">${mod.title}</div>
+                        <button class="download-btn" onclick="openDownload('${mod.fileUrl}')">Скачать Файл</button>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Безопасное открытие ссылок внутри Telegram
+        function openDownload(url) {
+            if (url && url !== "https://mod.io/") {
+                tg.openLink(url);
+            } else {
+                alert("Ссылка на файл пока не добавлена!");
+            }
+        }
+
+        // Запуск генерации списка
+        renderMods();
+    </script>
+</body>
+</html>
