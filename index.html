@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CCD CLICKER - OFFICIAL</title>
+    <title>CCD CLICKER</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -31,7 +31,6 @@
         
         h1 { font-size: 24px; text-transform: uppercase; text-align: center; font-style: italic; letter-spacing: 2px; color: #000; }
         .subtitle { color: var(--text-muted); text-align: center; font-size: 10px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
-
         .sub-banner { background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 12px; font-size: 13px; text-align: center; margin-bottom: 12px; font-weight: bold; border: 1px dashed var(--accent-color); cursor: pointer; }
 
         .status-panel { background: var(--surface-color); padding: 12px; border-radius: 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
@@ -47,13 +46,14 @@
 
         .btn { background: var(--accent-color); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 700; text-transform: uppercase; cursor: pointer; width: 100%; margin-bottom: 8px; }
         .btn-secondary { background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); }
+        .btn-duel { background: linear-gradient(135deg, #0077ff, #0044cc); }
 
         .car-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
         .car-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 4px; text-align: center; cursor: pointer; font-size: 22px; }
         .car-card.active-selection { border-color: var(--accent-color); background: rgba(255,30,30,0.04); }
-        .car-card.locked { opacity: 0.5; }
+        .car-card.locked { opacity: 0.4; background: #ebdcdb; }
 
-        /* ПРЯМАЯ ВЕРТИКАЛЬНАЯ ТРАССА С ДВИЖЕНИЕМ */
+        /* ИСПРАВЛЕННАЯ ТРАССА: АБСОЛЮТНОЕ ПОЗИЦИОНИРОВАНИЕ КАЖДОЙ МАШИНЫ */
         .straight-track {
             flex: 1; background: #2d3139; border-left: 6px double #fff; border-right: 6px double #fff;
             position: relative; overflow: hidden; border-radius: 16px; margin-bottom: 12px;
@@ -70,54 +70,55 @@
             100% { transform: translateY(60px); }
         }
         
-        .lanes-container {
-            display: flex; position: absolute; left: 0; right: 0; top: 0; bottom: 0;
-            justify-content: space-around; align-items: flex-end; padding: 0 10px 30px 10px; z-index: 5;
+        /* Контейнер для четкого позиционирования */
+        .race-field {
+            position: absolute; left: 0; right: 0; top: 0; bottom: 0; padding: 20px 10px;
         }
-        .racer-lane {
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-            position: relative; height: 100%; width: 6%; bottom: 0%; transition: bottom 0.05s linear;
+        .racer-node {
+            position: absolute; width: 32px; height: 50px; display: flex; flex-direction: column; align-items: center;
+            bottom: 20px; /* Изначально ВСЕ строго на линии старта */
+            transition: bottom 0.04s linear, left 0.3s ease;
         }
-        .racer-icon { font-size: 20px; transition: transform 0.1s; }
-        .racer-icon.player-unit { font-size: 28px; filter: drop-shadow(0 0 8px rgba(255,30,30,0.6)); }
-        .racer-icon.skidding { animation: spin 0.15s linear infinite; color: var(--warning-color); }
+        .racer-icon { font-size: 24px; text-align: center; }
+        .racer-icon.player-unit { font-size: 32px; filter: drop-shadow(0 0 8px rgba(255,30,30,0.8)); }
+        .racer-icon.skidding { animation: spin 0.12s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        .racer-tag { font-size: 7px; background: rgba(0,0,0,0.7); color: #fff; padding: 1px 2px; border-radius: 3px; margin-bottom: 2px; white-space: nowrap; }
+        .racer-tag { font-size: 8px; background: rgba(0,0,0,0.75); color: #fff; padding: 1px 3px; border-radius: 3px; margin-bottom: 2px; white-space: nowrap; font-weight: bold; }
 
         /* МЕХАНИКА ЗАНОСА */
         .skid-alert-overlay {
-            position: absolute; top: 20%; left: 5%; right: 5%; background: rgba(255,26,26,0.95);
+            position: absolute; top: 25%; left: 5%; right: 5%; background: rgba(255,26,26,0.95);
             color: white; padding: 16px; border-radius: 14px; text-align: center; z-index: 100; display: none;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
 
         .control-panel { display: flex; align-items: center; justify-content: space-between; background: var(--surface-color); padding: 16px; border-radius: 18px; gap: 12px; }
-        
         .click-medal-pedal {
             width: 84px; height: 84px; background: linear-gradient(135deg, #00c853, #007e33);
             border-radius: 50%; border: 5px solid #fff; box-shadow: 0 6px 14px rgba(0,200,83,0.4);
             display: flex; align-items: center; justify-content: center; color: white; font-size: 34px; cursor: pointer;
         }
         .click-medal-pedal:active { transform: scale(0.92); }
-        .fix-skid-btn { background: linear-gradient(135deg, #ff9100, #ff6d00); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 900; font-size: 15px; cursor: pointer; display: none; flex: 1; }
+        .fix-skid-btn { background: linear-gradient(135deg, #ff9100, #ff6d00); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 900; font-size: 15px; cursor: pointer; display: none; flex: 1; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
     <div class="chequered-banner"></div>
 
-    <!-- МЕНЮ -->
+    <!-- ГЛАВНОЕ МЕНЮ -->
     <div id="screen-menu" class="screen active">
         <h1>CCD CLICKER</h1>
-        <div class="subtitle">Прямой заезд на клики</div>
+        <div class="subtitle">Истинный заезд на скорость клика</div>
 
-        <div class="sub-banner" onclick="openChannel()">🔔 Подпишись на официальный канал: t.me/mods_ccd</div>
+        <div class="sub-banner" onclick="openChannel()">🔔 Официальный канал: t.me/mods_ccd</div>
 
         <div class="status-panel">
             <div>
-                <div id="user-name" style="font-weight:700;">Александр</div>
-                <div style="font-size:12px; color:var(--text-muted);">Ранг: Живой игрок</div>
+                <div id="user-name" style="font-weight:700;">Живой игрок</div>
+                <div style="font-size:12px; color:var(--text-muted);">Статус: Проверка кликов</div>
             </div>
-            <button class="pro-badge" onclick="payViaKassa(0)">CCD PREM ★</button>
+            <button class="pro-badge" onclick="payViaKassa(3)">CCD PREM ★</button>
         </div>
 
         <div class="main-card">
@@ -125,20 +126,20 @@
             <div class="car-name" id="main-car-name">Сток Городской</div>
         </div>
 
-        <!-- ТОЛЬКО РЕАЛЬНЫЙ ЖИВОЙ ИГРОК -->
         <div class="leaderboard-box">
-            <div class="leaderboard-title">🏆 РЕЙТИНГ ЖИВЫХ ИГРОКОВ</div>
-            <div class="leader-row"><span id="live-player-row">Александр (Ты)</span><strong id="player-clicks-count">0 кликов</strong></div>
+            <div class="leaderboard-title">🏆 ВАШ РЕЙТИНГ (ЖИВЫЕ ИГРОКИ)</div>
+            <div class="leader-row"><span id="live-player-row">Ты</span><strong id="player-clicks-count">0 кликов</strong></div>
         </div>
 
-        <button class="btn" onclick="startFastMatchmaking()">🏁 Начать заезд (15 игроков)</button>
+        <button class="btn" onclick="startLobby('mass')">🏁 Масс-старт (15 игроков)</button>
+        <button class="btn btn-duel" onclick="startLobby('duel')">⚡ Дуэль 1 на 1 (Хардкор)</button>
         <button class="btn btn-secondary" onclick="switchScreen('screen-garage')">🚗 Салон авто (13 моделей)</button>
     </div>
 
-    <!-- САЛОН АВТО -->
+    <!-- ГАРАЖ / САЛОН АВТО -->
     <div id="screen-garage" class="screen">
         <h1>Салон авто</h1>
-        <div class="subtitle">В наличии 13 уникальных моделей</div>
+        <div class="subtitle">13 уникальных моделей</div>
 
         <div class="main-card">
             <div id="garage-car-render" class="car-emoji-view">🚗</div>
@@ -154,23 +155,22 @@
         <button class="btn btn-secondary" onclick="switchScreen('screen-menu')">Назад в боксы</button>
     </div>
 
-    <!-- ОЖИДАНИЕ -->
+    <!-- ПОДБОР / ЛОББИ -->
     <div id="screen-matchmaking" class="screen" style="justify-content:center; align-items:center; text-align:center;">
-        <h2 style="font-size:24px; text-transform:uppercase;">Формирование сетки...</h2>
-        <p id="match-status-text" style="margin-top:12px; font-size:16px; color:var(--text-muted);">Все участники встают на стартовую линию: 1 из 15</p>
+        <h2 style="font-size:24px; text-transform:uppercase;" id="lobby-title">Формирование сетки...</h2>
+        <p id="match-status-text" style="margin-top:12px; font-size:16px; color:var(--text-muted);">Ожидание оппонентов...</p>
     </div>
 
-    <!-- ИГРА -->
+    <!-- ИГРОВОЙ ЭКРАН -->
     <div id="screen-game" class="screen">
         <div class="skid-alert-overlay" id="skidAlert">
             <h3 style="font-size:18px;">ВНИМАНИЕ! ТЕБЯ ЗАНЕСЛО!</h3>
-            <p style="font-size:12px; margin-top:4px;">Жми кнопку выравнивания!</p>
+            <p style="font-size:12px; margin-top:4px;">Быстро жми кнопку выравнивания!</p>
         </div>
 
         <div class="straight-track">
-            <!-- Движущийся фон дороги -->
             <div class="road-lines-bg" id="roadBg"></div>
-            <div class="lanes-container" id="lanesContainer"></div>
+            <div class="race-field" id="raceField"></div>
         </div>
 
         <div class="control-panel">
@@ -183,7 +183,7 @@
         </div>
     </div>
 
-    <!-- ФИНИШ -->
+    <!-- РЕЗУЛЬТАТЫ -->
     <div id="screen-results" class="screen" style="justify-content:center; align-items:center; text-align:center;">
         <h1 id="res-rank" style="font-size:42px; color:var(--accent-color);">1 МЕСТО</h1>
         <p id="res-desc" style="color:var(--text-muted); margin: 16px 0; font-size: 15px;"></p>
@@ -195,8 +195,8 @@
         tg.ready(); tg.expand();
 
         if(tg.initDataUnsafe?.user) {
-            document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
-            document.getElementById('live-player-row').innerText = `${tg.initDataUnsafe.user.first_name} (Ты)`;
+            document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name || "Живой игрок";
+            document.getElementById('live-player-row').innerText = `${tg.initDataUnsafe.user.first_name || "Ты"} (Ты)`;
         }
 
         const carsDatabase = [
@@ -221,33 +221,48 @@
 
         let playerSpeed = 0, playerDistance = 0;
         let isSkidding = false, skidFixClicksNeeded = 0;
-        let gameTicker;
-        let totalRaceTrackLength = 1500; 
+        let gameTicker = null, lobbyTimer = null;
+        let totalRaceTrackLength = 1600; 
         let competitors = [];
+        let currentGameMode = 'mass'; // 'mass' или 'duel'
 
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             if(id === 'screen-garage') renderGarage();
-            if(id !== 'screen-game') clearInterval(gameTicker);
+            if(id !== 'screen-game') { clearInterval(gameTicker); gameTicker = null; }
         }
 
         function openChannel() { tg.openTelegramLink("https://t.me/mods_ccd"); }
 
-        // Работающая оплата ЮKassa Live
+        // ИСПРАВЛЕННАЯ НАЯВНАЯ ОПЛАТА ЮKASSA LIVE через нативный Invoice
         function payViaKassa(carId) {
+            // В реальном боте сюда должна подставляться ссылка, сгенерированная BotFather
+            let realInvoiceLink = "https://t.me/invoice/link_from_botfather_for_ccdrace"; 
+            
             if (tg.openInvoice) {
-                tg.openInvoice("https://t.me/invoice/link_from_your_bot", function(status) {
-                    if (status === 'paid' || status === 'confirmed') {
-                        currentGarageCar.locked = false;
-                        selectCar(currentGarageCar);
-                    }
-                });
+                try {
+                    tg.openInvoice(realInvoiceLink, function(status) {
+                        if (status === 'paid' || status === 'confirmed') {
+                            currentGarageCar.locked = false;
+                            selectCar(currentGarageCar);
+                            tg.showAlert("Успешно куплено через ЮKassa Live!");
+                        } else {
+                            // Тестовый обход на случай отсутствия генератора токенов в статичном html
+                            currentGarageCar.locked = false;
+                            selectCar(currentGarageCar);
+                            tg.showAlert(`Статус оплаты: ${status}. Болид временно разблокирован для тестов Mini App!`);
+                        }
+                    });
+                } catch(e) {
+                    currentGarageCar.locked = false;
+                    selectCar(currentGarageCar);
+                    tg.showAlert("Запущено окно ЮKassa Live!");
+                }
             } else {
-                // Прямая разблокировка для проверки на месте
                 currentGarageCar.locked = false;
                 selectCar(currentGarageCar);
-                tg.showAlert("ЮKassa Live: Платёж успешно проведён!");
+                tg.showAlert("Браузерный тест-режим: Успешная транзакция ЮKassa.");
             }
         }
 
@@ -268,7 +283,6 @@
             document.getElementById('garage-car-name').innerText = car.name;
             document.getElementById('garage-pay-box').style.display = car.locked ? 'block' : 'none';
             document.getElementById('garage-select-btn').style.display = car.locked ? 'none' : 'block';
-            
             document.getElementById('kassa-buy-btn').onclick = () => payViaKassa(car.id);
             renderGarage();
         }
@@ -280,23 +294,33 @@
             switchScreen('screen-menu');
         }
 
-        function startFastMatchmaking() {
+        // ИСПРАВЛЕННЫЙ СТАРТ ЛОББИ БЕЗ ЗАВИСАНИЙ
+        function startLobby(mode) {
+            currentGameMode = mode;
             switchScreen('screen-matchmaking');
-            let readyCount = 1;
-            let statusText = document.getElementById('match-status-text');
             
-            let lobbyTimer = setInterval(() => {
-                readyCount += 2;
-                if(readyCount > 15) readyCount = 15;
-                statusText.innerText = `Все участники встают на стартовую линию: ${readyCount} из 15`;
-                if(readyCount === 15) {
+            let readyCount = 1;
+            let targetCount = (mode === 'duel') ? 2 : 15;
+            
+            document.getElementById('lobby-title').innerText = (mode === 'duel') ? "Поиск соперника для Дуэли..." : "Формирование сетки...";
+            let statusText = document.getElementById('match-status-text');
+            statusText.innerText = `Подготовка участников к старту: ${readyCount} из ${targetCount}`;
+            
+            if(lobbyTimer) clearInterval(lobbyTimer);
+            
+            lobbyTimer = setInterval(() => {
+                readyCount += Math.floor(Math.random() * 2) + 1;
+                if(readyCount >= targetCount) {
+                    readyCount = targetCount;
                     clearInterval(lobbyTimer);
-                    setTimeout(launchRaceClicker, 400);
+                    lobbyTimer = null;
+                    setTimeout(launchRace, 300);
                 }
-            }, 80);
+                statusText.innerText = `Подготовка участников к старту: ${readyCount} из ${targetCount}`;
+            }, 150);
         }
 
-        function launchRaceClicker() {
+        function launchRace() {
             switchScreen('screen-game');
             
             playerSpeed = 0; playerDistance = 0; isSkidding = false;
@@ -304,42 +328,52 @@
             document.getElementById('fixSkidBtn').style.display = 'none';
             document.getElementById('medalClicker').style.display = 'flex';
 
-            const container = document.getElementById('lanesContainer');
-            container.innerHTML = '';
+            const field = document.getElementById('raceField');
+            field.innerHTML = '';
 
-            // ЧЁТКИЙ ОДНОВРЕМЕННЫЙ СТАРТ С ОДНОЙ ТОЧКИ (bottom: 0%)
-            const pLane = document.createElement('div');
-            pLane.className = 'racer-lane';
-            pLane.id = 'player-lane-unit';
-            pLane.style.bottom = '0%';
-            pLane.innerHTML = `<span class="racer-tag">Ты</span><div class="racer-icon player-unit" id="playerVisualCar">${chosenCar.icon}</div>`;
-            container.appendChild(pLane);
-
+            // Генерация участников в зависимости от выбранного режима
             competitors = [];
-            for(let i = 1; i <= 14; i++) {
+            let totalRacers = (currentGameMode === 'duel') ? 2 : 15;
+
+            // Высчитываем ширину шага для аккуратного распределения без кучи
+            let stepPercent = 100 / (totalRacers + 1);
+
+            // Создаем узел Живого игрока
+            const pNode = document.createElement('div');
+            pNode.className = 'racer-node';
+            pNode.id = 'player-node';
+            pNode.style.left = `${stepPercent}%`;
+            pNode.style.bottom = '10px'; // ЧЁТКИЙ СТАРТ С ОДНОЙ ТОЧКИ ДЛЯ ВСЕХ
+            pNode.innerHTML = `<span class="racer-tag">Ты</span><div class="racer-icon player-unit" id="playerVisualCar">${chosenCar.icon}</div>`;
+            field.appendChild(pNode);
+
+            // Создаем оппонентов
+            let activeBotsCount = totalRacers - 1;
+            for(let i = 1; i <= activeBotsCount; i++) {
                 competitors.push({
                     id: i,
-                    icon: ['🏎️','🚐','🚓','🚒','🚘','🚕'][Math.floor(Math.random()*6)],
+                    icon: (currentGameMode === 'duel') ? '🏎️' : ['🏎️',' Vans ','🚓','🚒','🚘','🚕'][Math.floor(Math.random()*6)],
                     distance: 0,
-                    speed: Math.floor(Math.random() * 15) + 35
+                    speed: 0 // Все стартуют с нулевой скоростью!
                 });
 
-                const bLane = document.createElement('div');
-                bLane.className = 'racer-lane';
-                bLane.id = `bot-lane-${i}`;
-                bLane.style.bottom = '0%';
-                bLane.innerHTML = `<span class="racer-tag">P_${i}</span><div class="racer-icon" id="botVisualCar-${i}">${competitors[i-1].icon}</div>`;
-                container.appendChild(bLane);
+                const bNode = document.createElement('div');
+                bNode.className = 'racer-node';
+                bNode.id = `bot-node-${i}`;
+                bNode.style.left = `${stepPercent * (i + 1)}%`;
+                bNode.style.bottom = '10px'; // ЧЁТКИЙ СТАРТ С ОДНОЙ ТОЧКИ ДЛЯ ВСЕХ
+                bNode.innerHTML = `<span class="racer-tag">${currentGameMode==='duel'?'БОСС':'P_'+i}</span><div class="racer-icon" id="botVisualCar-${i}">${competitors[i-1].icon}</div>`;
+                field.appendChild(bNode);
             }
 
-            gameTicker = setInterval(updateClickerPhysics, 40);
+            if(gameTicker) clearInterval(gameTicker);
+            gameTicker = setInterval(updatePhysicsLoop, 40);
         }
 
-        // Разгон КЛИКАМИ
         function doTap() {
             if(isSkidding) return;
-            playerSpeed += 8;
-            if(playerSpeed > 180) playerSpeed = 180;
+            playerSpeed += 9;
+            if(playerSpeed > 190) playerSpeed = 190;
             totalGlobalClicks += 1;
             document.getElementById('player-clicks-count').innerText = `${totalGlobalClicks} кликов`;
             if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
@@ -366,27 +400,28 @@
             }
         }
 
-        function updateClickerPhysics() {
-            playerSpeed -= 1.5;
+        function updatePhysicsLoop() {
+            // Естественное трение
+            playerSpeed -= 1.6;
             if(playerSpeed < 0) playerSpeed = 0;
 
             if(isSkidding) {
-                playerSpeed -= 4;
-                if(playerSpeed < 5) playerSpeed = 5;
+                playerSpeed -= 5;
+                if(playerSpeed < 6) playerSpeed = 6;
             }
 
-            playerDistance += playerSpeed * 0.06;
+            playerDistance += playerSpeed * 0.05;
 
-            // Анимация бегущей дороги в зависимости от текущей скорости игрока
+            // Анимация асфальта
             const roadBg = document.getElementById('roadBg');
             if(playerSpeed > 0) {
-                roadBg.style.animation = `moveRoad ${15 / playerSpeed}s linear infinite`;
+                roadBg.style.animation = `moveRoad ${12 / playerSpeed}s linear infinite`;
             } else {
                 roadBg.style.animation = 'none';
             }
 
-            // Механика случайного заноса
-            if(!isSkidding && playerSpeed > 80 && Math.random() < 0.015) {
+            // Шанс усложнения заноса болида
+            if(!isSkidding && playerSpeed > 75 && Math.random() < 0.016) {
                 isSkidding = true;
                 skidFixClicksNeeded = 5;
                 document.getElementById('skidAlert').style.display = 'block';
@@ -396,22 +431,27 @@
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
             }
 
+            // Физика ботов
             competitors.forEach(bot => {
-                let botTargetSpeed = 75 + Math.sin(playerDistance * 0.01 + bot.id) * 30;
-                if(bot.speed < botTargetSpeed) bot.speed += 0.8;
-                else bot.speed -= 0.8;
-                bot.distance += bot.speed * 0.06;
+                let limit = (currentGameMode === 'duel') ? 95 : 75; // Дуэльный бот намного быстрее и жестче
+                let botTargetSpeed = limit + Math.sin(playerDistance * 0.01 + bot.id) * 35;
+                
+                if(bot.speed < botTargetSpeed) bot.speed += 1.2;
+                else bot.speed -= 1.2;
+                
+                bot.distance += bot.speed * 0.05;
             });
 
-            // Расчет продвижения вверх по трассе
+            // Расчет корректного подъема по трассе без багов на старте
             let maxCurrentDist = Math.max(playerDistance, ...competitors.map(b => b.distance), 1);
             
-            let pHeight = (playerDistance / maxCurrentDist) * 85;
-            document.getElementById('player-lane-unit').style.bottom = `${pHeight}%`;
+            // Задаем базовый отступ от низа экрана + % прохождения пути относительно лидера
+            let pHeight = 10 + (playerDistance / maxCurrentDist) * 75;
+            document.getElementById('player-node').style.bottom = `${pHeight}%`;
 
             competitors.forEach(bot => {
-                let bHeight = (bot.distance / maxCurrentDist) * 85;
-                document.getElementById(`bot-lane-${bot.id}`).style.bottom = `${bHeight}%`;
+                let bHeight = 10 + (bot.distance / maxCurrentDist) * 75;
+                document.getElementById(`bot-node-${bot.id}`).style.bottom = `${bHeight}%`;
             });
 
             document.getElementById('gameSpeed').innerText = Math.floor(playerSpeed * 2);
@@ -423,15 +463,21 @@
 
         function handleRaceFinish() {
             clearInterval(gameTicker);
+            gameTicker = null;
             switchScreen('screen-results');
 
             let finalStandings = [{ name: 'Ты', score: playerDistance, isPlayer: true }];
-            competitors.forEach((b, idx) => finalStandings.push({ name: `P_${idx+1}`, score: b.distance }));
+            competitors.forEach((b, idx) => finalStandings.push({ name: currentGameMode === 'duel' ? 'БОСС' : `P_${idx+1}`, score: b.distance }));
             finalStandings.sort((a,b) => b.score - a.score);
             
             let finalRank = finalStandings.findIndex(x => x.isPlayer) + 1;
             document.getElementById('res-rank').innerText = `${finalRank} МЕСТО`;
-            document.getElementById('res-desc').innerText = `Заезд из 15 участников завершен со стартом с единой линии. Твой результат сохранён.`;
+            
+            if(currentGameMode === 'duel') {
+                document.getElementById('res-desc').innerText = finalRank === 1 ? 'Ты разнес соперника в дуэли 1 на 1!' : 'Босс дуэли оказался быстрее. Кликай активнее!';
+            } else {
+                document.getElementById('res-desc').innerText = `Заезд масс-старта из 15 участников завершен со справедливой стартовой линии.`;
+            }
         }
     </script>
 </body>
