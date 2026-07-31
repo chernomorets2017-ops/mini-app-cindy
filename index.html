@@ -2,173 +2,952 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cindy Car Drive Mods</title>
-    <!-- Подключаем скрипт Telegram Web App -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Turbo Battle Royale</title>
+    <!-- Подключаем Telegram Web Apps API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: var(--tg-theme-bg-color, #181818);
-            --text-color: var(--tg-theme-text-color, #ffffff);
-            --hint-color: var(--tg-theme-hint-color, #aaaaaa);
-            --card-bg: var(--tg-theme-secondary-bg-color, #242424);
-            --button-bg: var(--tg-theme-button-color, #248bcf);
-            --button-text: var(--tg-theme-button-text-color, #ffffff);
+            --bg-color: #0b0e14;
+            --surface-color: #161b26;
+            --accent-color: #ff3e3e;
+            --accent-glow: rgba(255, 62, 62, 0.4);
+            --text-color: #ffffff;
+            --text-muted: #8a95a5;
+            --success-color: #00e676;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 15px;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             -webkit-user-select: none;
             user-select: none;
         }
 
-        .header {
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Экраны */
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            padding: 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        h1 {
+            font-size: 24px;
+            text-transform: uppercase;
             text-align: center;
+            margin-bottom: 5px;
+            font-style: italic;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        /* Главное меню */
+        .status-panel {
+            background: var(--surface-color);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #242c3d;
+        }
+
+        .pro-badge {
+            background: linear-gradient(45deg, #ffd700, #ffa500);
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px var(--accent-glow);
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: var(--surface-color);
+            border: 1px solid #242c3d;
+            box-shadow: none;
+        }
+
+        /* Гараж / Донат */
+        .garage-preview {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: radial-gradient(circle, #1f2736 0%, var(--bg-color) 70%);
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .car-display {
+            font-size: 70px;
+            transition: transform 0.3s;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+        }
+
+        .car-info {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .car-name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .car-rarity {
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        .rarity-common { color: #a0a0a0; }
+        .rarity-epic { color: #b388ff; }
+        .rarity-legendary { color: #ffab40; animation: pulse 1.5s infinite alternate; }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .car-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            overflow-y: auto;
+            max-height: 250px;
+            padding-bottom: 10px;
+        }
+
+        .car-card {
+            background: var(--surface-color);
+            border: 1px solid #242c3d;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        .car-card.locked {
+            opacity: 0.6;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+        }
+
+        /* Экран Подбора (Матчмейкинг) */
+        .matchmaking-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader {
+            width: 80px;
+            height: 80px;
+            border: 4px solid var(--surface-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 30px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .players-count {
+            font-size: 40px;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Игровой экран */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stage-indicator {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .elimination-alert {
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Гоночный трек */
+        .track {
+            flex: 1;
+            background: #1c2331;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #2d384e;
             margin-bottom: 20px;
         }
 
-        .header h1 {
-            font-size: 20px;
-            margin: 0 0 5px 0;
-        }
-
-        .header p {
-            font-size: 13px;
-            color: var(--hint-color);
-            margin: 0;
-        }
-
-        /* Сетка для карточек модов */
-        .mods-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* По 2 мода в ряд на экране телефона */
-            gap: 12px;
-        }
-
-        .mod-card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-        }
-
-        .mod-img {
+        .track-line {
+            position: absolute;
             width: 100%;
-            height: 110px;
-            object-fit: cover;
-            background-color: #333;
+            height: 2px;
+            background: dashed rgba(255,255,255,0.1);
+            top: 50%;
         }
 
-        .mod-info {
-            padding: 10px;
+        .player-car-node {
+            position: absolute;
+            font-size: 32px;
+            transition: left 0.5s ease-in-out, top 0.3s;
+            z-index: 10;
+        }
+
+        .bot-car-node {
+            position: absolute;
+            font-size: 26px;
+            opacity: 0.7;
+            transition: left 0.5s ease-in-out, top 0.3s;
+        }
+
+        .car-label {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            background: rgba(0,0,0,0.6);
+            padding: 1px 4px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        /* Светофор Формулы-1 */
+        .lights-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            background: #000;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .light-housing {
+            width: 40px;
+            height: 40px;
+            background: #222;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .light {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #330000;
+            transition: background 0.1s;
+        }
+
+        .light.red {
+            background: #ff0000;
+            box-shadow: 0 0 15px #ff0000;
+        }
+
+        .light.green {
+            background: #00ff00;
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        /* Интерактивная зона */
+        .action-zone {
+            background: var(--surface-color);
+            border-radius: 16px;
+            padding: 20px;
+            min-height: 180px;
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
-            justify-content: space-between;
-        }
-
-        .mod-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            line-height: 1.2;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .download-btn {
-            background-color: var(--button-bg);
-            color: var(--button-text);
-            border: none;
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #242c3d;
             text-align: center;
-            transition: opacity 0.2s;
         }
 
-        .download-btn:active {
-            opacity: 0.8;
+        .action-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .tap-pad {
+            width: 100%;
+            flex: 1;
+            background: linear-gradient(135deg, #242c3d, #1a202c);
+            border: 2px dashed #3b4861;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--text-muted);
+            min-height: 100px;
+        }
+
+        .tap-pad:active {
+            background: #2d384e;
+            border-color: var(--accent-color);
+            color: #fff;
+        }
+
+        .quiz-options {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .quiz-btn {
+            background: #242c3d;
+            color: white;
+            border: 1px solid #3b4861;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .quiz-btn:active {
+            background: #323d54;
+        }
+
+        /* Экран Итогов */
+        .result-box {
+            background: var(--surface-color);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin: auto 0;
+            border: 1px solid #242c3d;
+        }
+
+        .result-place {
+            font-size: 64px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>Cindy Car Mods</h1>
-        <p>Выбирай мод и скачивай файл напрямую</p>
+    <!-- 1. ЭКРАН ГЛАВНОГО МЕНЮ -->
+    <div id="screen-menu" class="screen active">
+        <h1>Turbo Royale</h1>
+        <div class="subtitle">Выживает самый быстрый</div>
+
+        <div class="status-panel">
+            <div>
+                <div id="user-name" style="font-weight: bold;">Драйвер</div>
+                <div id="pro-status" style="font-size: 12px; margin-top: 4px; color: var(--text-muted);">Статус: Обычный</div>
+            </div>
+            <div id="pro-badge-container">
+                <button class="pro-badge" onclick="buyPro()">Купить PRO</button>
+            </div>
+        </div>
+
+        <div class="garage-preview">
+            <div id="main-car-display" class="car-display">🏎️</div>
+            <div class="car-info">
+                <div id="main-car-name" class="car-name">Сток-болид v1</div>
+                <div id="main-car-rarity" class="car-rarity rarity-common">Базовая модель</div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="startMatchmaking()">В бой!</button>
+        <button class="btn btn-secondary" onclick="switchScreen('screen-garage')">Гараж и донат (100 моделей)</button>
     </div>
 
-    <div class="mods-grid" id="mods-container">
-        <!-- Моды будут загружаться сюда из JavaScript -->
+    <!-- 2. ЭКРАН ГАРАЖА И ДОНАТА -->
+    <div id="screen-garage" class="screen">
+        <h1>Донат-Автосалон</h1>
+        <div class="subtitle">Открой все 100 эксклюзивных суперкаров</div>
+
+        <div class="garage-preview" style="flex: 0 0 160px;">
+            <div id="garage-car-display" class="car-display">🏎️</div>
+            <div class="car-info">
+                <div id="garage-car-name" class="car-name">Сток-болид v1</div>
+                <div id="garage-car-rarity" class="car-rarity rarity-common">Базовая</div>
+            </div>
+        </div>
+
+        <button id="buy-car-btn" class="btn" style="display: none; background: #ffd700; color: #000; box-shadow: 0 4px 15px rgba(255,215,0,0.4);" onclick="unlockCarAction()">Разблокировать за 50 ⭐️</button>
+
+        <div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">Коллекция моделей (1-9 из 100):</div>
+        <div class="car-grid" id="car-grid-container">
+            <!-- Генерируется динамически через JS -->
+        </div>
+
+        <button class="btn btn-secondary" style="margin-top: auto;" onclick="switchScreen('screen-menu')">Назад в меню</button>
+    </div>
+
+    <!-- 3. ЭКРАН МАТЧМЕЙКИНГА -->
+    <div id="screen-matchmaking" class="screen">
+        <h1 style="margin-top: 40px;">Сбор Лобби</h1>
+        <div class="subtitle">Поиск соперников на трассе...</div>
+        
+        <div class="matchmaking-container">
+            <div class="loader"></div>
+            <div class="players-count"><span id="players-found">1</span> / 20</div>
+            <div style="color: var(--text-muted); margin-top: 10px;">Пилотов готово к старту</div>
+        </div>
+        <button class="btn btn-secondary" onclick="cancelMatchmaking()">Покинуть очередь</button>
+    </div>
+
+    <!-- 4. ИГРОВОЙ ЭКРАН -->
+    <div id="screen-game" class="screen">
+        <div class="game-header">
+            <div id="game-stage" class="stage-indicator">Старт гонки</div>
+            <div class="elimination-alert">Зона вылета: <span id="elim-count">3</span> последних</div>
+        </div>
+
+        <div class="track" id="race-track">
+            <div class="track-line"></div>
+            <!-- Сюда рендерятся машинки участников -->
+        </div>
+
+        <!-- Зона светофора / Контента -->
+        <div id="lights-zone" style="display: none;">
+            <div class="lights-container">
+                <div class="light-housing"><div class="light" id="l1"></div></div>
+                <div class="light-housing"><div class="light" id="l2"></div></div>
+                <div class="light-housing"><div class="light" id="l3"></div></div>
+                <div class="light-housing"><div class="light" id="l4"></div></div>
+                <div class="light-housing"><div class="light" id="l5"></div></div>
+            </div>
+        </div>
+
+        <div class="action-zone" id="interactive-zone">
+            <!-- Сюда динамически подсовывается тач-пад реакции или квиз -->
+        </div>
+    </div>
+
+    <!-- 5. ЭКРАН РЕЗУЛЬТАТОВ -->
+    <div id="screen-results" class="screen">
+        <h1>Финиш</h1>
+        <div class="subtitle">Итоговый протокол заезда</div>
+
+        <div class="result-box">
+            <div id="res-place" class="result-place">#1</div>
+            <div id="res-status" style="font-size: 20px; font-weight: bold; margin-bottom: 15px;">ПОБЕДА!</div>
+            <p id="res-desc" style="color: var(--text-muted); line-height: 1.5;"></p>
+        </div>
+
+        <button class="btn" style="margin-top: 40px;" onclick="switchScreen('screen-menu')">В главное меню</button>
     </div>
 
     <script>
-        // Инициализация Telegram WebApp
+        // Инициализация Telegram Web App
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем приложение на весь экран
+        tg.ready();
+        tg.expand();
 
-        // БАЗА ДАННЫХ МОДОВ
-        // Просто добавляй сюда новые объекты. Ссылки на картинки и файлы бери прямо с mod.io
-        const modsData = [
-            {
-                title: "Toyota Supra A80 (Stock & Tuned)",
-                image: "https://placehold.co/300x200/242424/ffffff?text=Supra+Img", 
-                fileUrl: "https://mod.io/" // Ссылка на скачивание файла
-            },
-            {
-                title: "Monster Truck XL",
-                image: "https://placehold.co/300x200/242424/ffffff?text=Monster+Img",
-                fileUrl: "https://mod.io/"
-            },
-            {
-                title: "Зимняя карта (Winter Map)",
-                image: "https://placehold.co/300x200/242424/ffffff?text=Map+Img",
-                fileUrl: "https://mod.io/"
-            }
+        // Проверяем имя пользователя из TG
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
+        }
+
+        // --- ДАННЫЕ ИГРЫ ---
+        let isPro = false;
+        let mmInterval;
+        let gameTimeout;
+        
+        // База данных машин (симулируем до 100 моделей, генерируем первые 9 для демонстрации интерфейса)
+        const carsDatabase = [
+            { id: 0, emoji: '🏎️', name: 'Сток-болид v1', rarity: 'common', label: 'Базовая', owned: true },
+            { id: 1, emoji: '🚗', name: 'Хэтчбек Спорт', rarity: 'common', label: 'Обычная', owned: true },
+            { id: 2, emoji: '🚘', name: 'Седан GT', rarity: 'common', label: 'Обычная', owned: true },
+            { id: 3, emoji: '⚡', name: 'Электро-Гиперкар', rarity: 'epic', label: 'Эпик (Донат)', owned: false, price: 50 },
+            { id: 4, emoji: '🔥', name: 'Дрифт Корч', rarity: 'epic', label: 'Эпик (Донат)', owned: false, price: 75 },
+            { id: 5, emoji: '🛸', name: 'Концепт 2030', rarity: 'epic', label: 'Эпик (Донат)', owned: false, price: 90 },
+            { id: 6, emoji: '👑', name: 'F1 Золотой Болид', rarity: 'legendary', label: 'Легенда (Донат)', owned: false, price: 250 },
+            { id: 7, emoji: '👾', name: 'Кибертрак EVO', rarity: 'legendary', label: 'Легенда (Донат)', owned: false, price: 150 },
+            { id: 8, emoji: '🦄', name: 'Мустанг Магия', rarity: 'legendary', label: 'Легенда (Донат)', owned: false, price: 200 }
         ];
-
-        const container = document.getElementById('mods-container');
-
-        // Функция отрисовки карточек
-        function renderMods() {
-            modsData.forEach(mod => {
-                const card = document.createElement('div');
-                card.className = 'mod-card';
-                
-                card.innerHTML = `
-                    <img class="mod-img" src="${mod.image}" alt="${mod.title}">
-                    <div class="mod-info">
-                        <div class="mod-title">${mod.title}</div>
-                        <button class="download-btn" onclick="openDownload('${mod.fileUrl}')">Скачать Файл</button>
-                    </div>
-                `;
-                
-                container.appendChild(card);
+        
+        // Заполняем массив до 100 абстрактных моделей
+        for(let i = 9; i < 100; i++) {
+            carsDatabase.push({
+                id: i,
+                emoji: '🏎️',
+                name: `Кастом Болид #${i+1}`,
+                rarity: i % 10 === 0 ? 'legendary' : (i % 3 === 0 ? 'epic' : 'common'),
+                label: i % 10 === 0 ? 'Легенда (Донат)' : (i % 3 === 0 ? 'Эпик (Донат)' : 'Заблокировано'),
+                owned: false,
+                price: 50 + (i * 2)
             });
         }
 
-        // Безопасное открытие ссылок внутри Telegram
-        function openDownload(url) {
-            if (url && url !== "https://mod.io/") {
-                tg.openLink(url);
-            } else {
-                alert("Ссылка на файл пока не добавлена!");
+        let currentCar = carsDatabase[0];
+        let selectedGarageCar = carsDatabase[0];
+
+        // Состояние гонки
+        let raceState = {
+            stage: 0, // 0 - старт, 1 - квиз, 2 - реакция2, 3 - финал
+            playerPosition: 50, // Прогресс по трассе в %
+            bots: [],
+            startTime: 0,
+            hasFailedCurrentStage: false
+        };
+
+        const quizQuestions = [
+            { q: "Что означает ЖЕЛТЫЙ флаг в гонках?", a: ["Безопасность / Сбавить скорость", "Дисквалификация", "Финиш гонки"], correct: 0 },
+            { q: "Какая команда взяла кубок конструкторов 2025?", a: ["Ferrari", "McLaren", "Red Bull Racing"], correct: 1 },
+            { q: "Где проводится Гран-при Монако?", a: ["На специальном автодроме", "По улицам города", "В пустыне"], correct: 1 }
+        ];
+
+        // --- НАВИГАЦИЯ ---
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            if(screenId === 'screen-garage') {
+                renderGarage();
             }
         }
 
-        // Запуск генерации списка
-        renderMods();
+        // --- ЛОГИКА ДОНАТА И ПОДПИСКИ ---
+        function buyPro() {
+            // В реальном приложении вызывается метод tg.openInvoice()
+            tg.showPopup({
+                title: 'Активация подписки',
+                message: 'Хотите оформить подписку "PRO-Драйвер" за 150 ⭐️ в месяц? Вы получите страховку от вылетов и ежедневные бусты!',
+                buttons: [{id: 'buy', type: 'default', text: 'Купить подписку'}, {type: 'cancel'}]
+            }, function(buttonId) {
+                if (buttonId === 'buy') {
+                    isPro = true;
+                    document.getElementById('pro-status').innerText = "Статус: PRO-Драйвер ✨";
+                    document.getElementById('pro-status').style.color = "var(--success-color)";
+                    document.getElementById('pro-badge-container').innerHTML = `<span class="pro-badge" style="background:#00e676">Активна</span>`;
+                    triggerHaptic('success');
+                }
+            });
+        }
+
+        function renderGarage() {
+            const container = document.getElementById('car-grid-container');
+            container.innerHTML = '';
+            
+            // Показываем первые 12 для примера скролла интерфейса
+            carsDatabase.slice(0, 15).forEach(car => {
+                const card = document.createElement('div');
+                card.className = `car-card ${car.owned ? '' : 'locked'}`;
+                card.innerHTML = `
+                    <div style="font-size:24px">${car.emoji}</div>
+                    <div style="font-size:10px; font-weight:bold; margin-top:5px; white-space:nowrap; overflow:hidden;">${car.name}</div>
+                    ${!car.owned ? '<span class="lock-icon">🔒</span>' : ''}
+                `;
+                card.onclick = () => selectCarInGarage(car);
+                container.appendChild(card);
+            });
+            selectCarInGarage(selectedGarageCar);
+        }
+
+        function selectCarInGarage(car) {
+            selectedGarageCar = car;
+            document.getElementById('garage-car-display').innerText = car.emoji;
+            document.getElementById('garage-car-name').innerText = car.name;
+            
+            const rarityEl = document.getElementById('garage-car-rarity');
+            rarityEl.innerText = car.label;
+            rarityEl.className = `car-rarity rarity-${car.rarity}`;
+
+            const buyBtn = document.getElementById('buy-car-btn');
+            if (car.owned) {
+                buyBtn.style.display = 'block';
+                buyBtn.innerText = "Выбрать эту модель";
+                buyBtn.style.background = "var(--accent-color)";
+                buyBtn.style.color = "#fff";
+            } else {
+                buyBtn.style.display = 'block';
+                buyBtn.innerText = `Открыть модель за ${car.price} ⭐️`;
+                buyBtn.style.background = "#ffd700";
+                buyBtn.style.color = "#000";
+            }
+        }
+
+        function unlockCarAction() {
+            if (selectedGarageCar.owned) {
+                currentCar = selectedGarageCar;
+                document.getElementById('main-car-display').innerText = currentCar.emoji;
+                document.getElementById('main-car-name').innerText = currentCar.name;
+                document.getElementById('main-car-rarity').innerText = currentCar.label;
+                document.getElementById('main-car-rarity').className = `car-rarity rarity-${currentCar.rarity}`;
+                triggerHaptic('light');
+                switchScreen('screen-menu');
+            } else {
+                // Симуляция транзакции Stars
+                tg.showPopup({
+                    title: 'Покупка болида',
+                    message: `Приобрести модель "${selectedGarageCar.name}" за ${selectedGarageCar.price} Telegram Stars?`,
+                    buttons: [{id: 'pay', type: 'default', text: 'Оплатить'}, {type: 'cancel'}]
+                }, function(buttonId) {
+                    if (buttonId === 'pay') {
+                        selectedGarageCar.owned = true;
+                        renderGarage();
+                        triggerHaptic('success');
+                    }
+                });
+            }
+        }
+
+        // --- СИМУЛЯЦИЯ МАТЧМЕЙКИНГА (ВЕБ-СОКЕТЫ НА МИНИМАЛКАХ) ---
+        function startMatchmaking() {
+            switchScreen('screen-matchmaking');
+            let found = 1;
+            document.getElementById('players-found').innerText = found;
+            
+            mmInterval = setInterval(() => {
+                found += Math.floor(Math.random() * 4) + 1;
+                if(found > 20) found = 20;
+                document.getElementById('players-found').innerText = found;
+                
+                if(found >= 20) {
+                    clearInterval(mmInterval);
+                    initGame();
+                }
+            }, 600);
+        }
+
+        function cancelMatchmaking() {
+            clearInterval(mmInterval);
+            switchScreen('screen-menu');
+        }
+
+        // --- ИГРОВОЙ ПРОЦЕСС ---
+        function initGame() {
+            switchScreen('screen-game');
+            raceState.stage = 0;
+            raceState.playerPosition = 10;
+            raceState.hasFailedCurrentStage = false;
+            
+            // Генерируем ботов-соперников
+            raceState.bots = [];
+            for(let i = 0; i < 5; i++) {
+                raceState.bots.push({
+                    id: i,
+                    emoji: ['🏎️','🚓','🏎️','🚘','🏎️'][i],
+                    name: `Driver_${Math.floor(Math.random()*900 + 100)}`,
+                    pos: 10 + (Math.random() * 5)
+                });
+            }
+            
+            renderTrack();
+            runLightsStage();
+        }
+
+        function renderTrack() {
+            const track = document.getElementById('race-track');
+            track.innerHTML = '<div class="track-line"></div>';
+            
+            // Отрендерить игрока
+            const pNode = document.createElement('div');
+            pNode.className = 'player-car-node';
+            pNode.id = 'player-car';
+            pNode.style.left = `${raceState.playerPosition}%`;
+            pNode.style.top = '60%';
+            pNode.innerHTML = `${currentCar.emoji}<div class="car-label" style="color:var(--success-color)">Ты</div>`;
+            track.appendChild(pNode);
+            
+            // Отрендерить ботов
+            raceState.bots.forEach((bot, index) => {
+                const bNode = document.createElement('div');
+                bNode.className = 'bot-car-node';
+                bNode.style.left = `${bot.pos}%`;
+                // Распределяем по высоте трассы
+                bNode.style.top = `${15 + (index * 12)}%`; 
+                bNode.innerHTML = `${bot.emoji}<div class="car-label">${bot.name}</div>`;
+                track.appendChild(bNode);
+            });
+        }
+
+        // Этап 1: Светофор
+        function runLightsStage() {
+            document.getElementById('game-stage').innerText = "Старт заезда";
+            document.getElementById('elim-count').innerText = "2";
+            document.getElementById('lights-zone').style.display = 'block';
+            
+            const iz = document.getElementById('interactive-zone');
+            iz.innerHTML = `<div class="action-title">Приготовьтесь к старту...</div>
+                            <div class="tap-pad" id="start-tap-pad" style="pointer-events: none;">ЖДИТЕ ЗЕЛЕНОГО</div>`;
+            
+            let lightIndex = 1;
+            let lightsInterval = setInterval(() => {
+                document.getElementById(`l${lightIndex}`).classList.add('red');
+                lightIndex++;
+                triggerHaptic('light');
+                
+                if(lightIndex > 5) {
+                    clearInterval(lightsInterval);
+                    // Случайный тайминг до зеленого (1-3 сек)
+                    let randomDelay = 1000 + Math.random() * 2000;
+                    setTimeout(() => {
+                        // Зажглись зеленые!
+                        for(let i=1; i<=5; i++) {
+                            document.getElementById(`l${i}`).className = 'light green';
+                        }
+                        triggerHaptic('heavy');
+                        
+                        // Разрешаем нажатие
+                        const pad = document.getElementById('start-tap-pad');
+                        pad.innerText = "ЖМИ СЕЙЧАС!";
+                        pad.style.color = "#fff";
+                        pad.style.borderColor = "var(--success-color)";
+                        document.getElementById('start-tap-pad').parentElement.style.pointerEvents = 'auto';
+                        
+                        raceState.startTime = Date.now();
+                        
+                        // Таймаут на взрыв мотора, если долго не нажимал
+                        gameTimeout = setTimeout(() => {
+                            resolveStage(9999); // Очень медленно
+                        }, 2000);
+                        
+                    }, randomDelay);
+                }
+            }, 700);
+
+            // Навешиваем событие клика на пад
+            iz.onclick = function() {
+                if(raceState.startTime > 0) {
+                    let reactionTime = Date.now() - raceState.startTime;
+                    clearTimeout(gameTimeout);
+                    iz.onclick = null; // убираем клик
+                    resolveStage(reactionTime);
+                }
+            };
+        }
+
+        function resolveStage(score) {
+            document.getElementById('lights-zone').style.display = 'none';
+            
+            if(raceState.stage === 0) {
+                // Обработка старта гонки
+                if(score > 600) {
+                    // Медленный старт
+                    raceState.playerPosition += 10;
+                    raceState.hasFailedCurrentStage = true;
+                } else {
+                    // Идеальный старт
+                    raceState.playerPosition += 35;
+                }
+                
+                // Боты тоже двигаются случайно
+                raceState.bots.forEach(b => b.pos += (Math.random() * 25 + 15));
+                renderTrack();
+                
+                setTimeout(() => {
+                    checkElimination(2, runQuizStage);
+                }, 1500);
+            }
+        }
+
+        // Этап 2: Автоспортивный квиз
+        function runQuizStage() {
+            raceState.stage = 1;
+            raceState.hasFailedCurrentStage = false;
+            document.getElementById('game-stage').innerText = "Сектор 2: Эрудиция";
+            document.getElementById('elim-count').innerText = "1";
+            
+            const randomQuestion = quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+            const iz = document.getElementById('interactive-zone');
+            
+            let optionsHtml = '';
+            randomQuestion.a.forEach((ans, idx) => {
+                optionsHtml += `<button class="quiz-btn" onclick="selectQuizAnswer(${idx}, ${randomQuestion.correct})">${ans}</button>`;
+            });
+            
+            iz.innerHTML = `
+                <div class="action-title">${randomQuestion.q}</div>
+                <div class="quiz-options">${optionsHtml}</div>
+            `;
+        }
+
+        function selectQuizAnswer(chosen, correct) {
+            const iz = document.getElementById('interactive-zone');
+            iz.innerHTML = `<div class="action-title">Фиксируем телеметрию...</div>`;
+            
+            if(chosen === correct) {
+                raceState.playerPosition += 35;
+                triggerHaptic('success');
+            } else {
+                raceState.hasFailedCurrentStage = true;
+                triggerHaptic('heavy');
+            }
+            
+            // Двигаем ботов дальше
+            raceState.bots.forEach(b => b.pos += (Math.random() * 20 + 10));
+            renderTrack();
+            
+            setTimeout(() => {
+                checkElimination(1, runFinishStage);
+            }, 1500);
+        }
+
+        // Финал
+        function runFinishStage() {
+            raceState.stage = 2;
+            document.getElementById('game-stage').innerText = "Финальный Круг";
+            
+            // Сортируем и вычисляем итоговое место
+            let leaderboard = [...raceState.bots, {name: 'Ты', pos: raceState.playerPosition, isPlayer: true}];
+            leaderboard.sort((a,b) => b.pos - a.pos);
+            
+            let playerPlace = leaderboard.findIndex(x => x.isPlayer) + 1;
+            
+            switchScreen('screen-results');
+            
+            const resPlace = document.getElementById('res-place');
+            const resStatus = document.getElementById('res-status');
+            const resDesc = document.getElementById('res-desc');
+            
+            resPlace.innerText = `#${playerPlace}`;
+            
+            if(playerPlace === 1) {
+                resStatus.innerText = "ЧЕМПИОН!";
+                resStatus.style.color = "var(--success-color)";
+                resDesc.innerText = "Идеальное вождение! Вы обошли абсолютно всех соперников на трассе и забрали Гран-при.";
+                triggerHaptic('success');
+            } else if(playerPlace <= 3) {
+                resStatus.innerText = "ПОДИУМ";
+                resStatus.style.color = "#ffd700";
+                resDesc.innerText = `Достойный финиш на кубковом месте #${playerPlace}. Еще немного тренировок, и золото будет вашим!`;
+                triggerHaptic('medium');
+            } else {
+                resStatus.innerText = "ФИНИШ В СТАРТЕ";
+                resStatus.style.color = var(--text-muted);
+                resDesc.innerText = `Вы закончили гонку на #${playerPlace} позиции. Загляните в Донат-Автосалон, новые модели машин дадут вам преимущество!`;
+            }
+        }
+
+        // Проверка вылетов из гонки
+        function checkElimination(countToEliminate, nextStageCallback) {
+            // Сортируем участников по позиции (от худшего к лучшему)
+            let currentGrid = [...raceState.bots];
+            currentGrid.sort((a,b) => a.pos - b.pos);
+            
+            // Если игрок на последней позиции и провалил этап
+            let isPlayerLast = true;
+            currentGrid.forEach(b => {
+                if(b.pos > raceState.playerPosition) isPlayerLast = false;
+            });
+            
+            if(isPlayerLast && raceState.hasFailedCurrentStage) {
+                // ЕСЛИ ЕСТЬ ПОДПИСКА (PRO-СТРАХОВКА)
+                if(isPro) {
+                    isPro = false; // Тратим страховку на этот заезд
+                    tg.showAlert("🚨 PRO-Страховка сработала! Ваш болид экстренно починили. Вы остаетесь в гонке!");
+                    raceState.playerPosition += 15; // Подталкиваем вперед
+                    renderTrack();
+                    nextStageCallback();
+                    return;
+                }
+                
+                // Вылет игрока
+                switchScreen('screen-results');
+                document.getElementById('res-place').innerText = "DNF";
+                document.getElementById('res-status').innerText = "ВЫЛЕТ С ТРАССЫ";
+                document.getElementById('res-status').style.color = "var(--accent-color)";
+                document.getElementById('res-desc').innerText = "Вы не уложились в лимит времени сектора или допустили критическую ошибку. Болид сошел с дистанции.";
+                return;
+            }
+            
+            // Удаляем худших ботов
+            for(let i = 0; i < countToEliminate; i++) {
+                if(raceState.bots.length > 0) {
+                    // Сортируем заново и удаляем самого последнего бота
+                    raceState.bots.sort((a,b) => b.pos - a.pos);
+                    raceState.bots.pop();
+                }
+            }
+            
+            renderTrack();
+            nextStageCallback();
+        }
+
+        // --- УТИЛИТЫ ---
+        function triggerHaptic(type) {
+            if(tg.HapticFeedback) {
+                if(type === 'light') tg.HapticFeedback.impactOccurred('light');
+                if(type === 'medium') tg.HapticFeedback.impactOccurred('medium');
+                if(type === 'heavy') tg.HapticFeedback.impactOccurred('heavy');
+                if(type === 'success') tg.HapticFeedback.notificationOccurred('success');
+            }
+        }
     </script>
 </body>
 </html>
