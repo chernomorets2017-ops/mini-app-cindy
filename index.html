@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CCD RACE</title>
+    <title>CCD RACE - Бесконечный Трек</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -17,177 +17,45 @@
             --border-color: #242936;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-user-select: none; user-select: none; }
+        body { background-color: var(--bg-color); color: var(--text-color); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        
         .chequered-banner {
             height: 12px;
             background-image: 
-                linear-gradient(45deg, #000 25%, transparent 25%), 
-                linear-gradient(-45deg, #000 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, #000 75%),
-                linear-gradient(-45deg, transparent 75%, #000 75%);
-            background-size: 16px 16px;
-            background-color: #fff;
-            width: 100%;
+                linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%);
+            background-size: 16px 16px; background-color: #fff; width: 100%;
         }
 
-        .screen {
-            display: none;
-            flex-direction: column;
-            height: calc(100vh - 12px);
-            width: 100%;
-            padding: 16px 20px 24px 20px;
-            overflow-y: auto;
-        }
+        .screen { display: none; flex-direction: column; height: calc(100vh - 12px); width: 100%; padding: 16px 20px 24px 20px; overflow-y: auto; }
+        .screen.active { display: flex; }
+        h1 { font-size: 26px; text-transform: uppercase; text-align: center; margin-top: 5px; font-style: italic; letter-spacing: 3px; }
+        .subtitle { color: var(--text-muted); text-align: center; font-size: 11px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; }
 
-        .screen.active {
-            display: flex;
-        }
+        .status-panel { background: var(--surface-color); padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
+        .pro-badge { background: linear-gradient(135deg, #ff1e1e, #b30000); color: #fff; padding: 8px 14px; border: none; border-radius: 8px; font-size: 11px; font-weight: bold; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 10px var(--accent-glow); }
 
-        h1 {
-            font-size: 26px;
-            text-transform: uppercase;
-            text-align: center;
-            margin-top: 5px;
-            font-style: italic;
-            letter-spacing: 3px;
-        }
-
-        .subtitle {
-            color: var(--text-muted);
-            text-align: center;
-            font-size: 11px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-
-        .status-panel {
-            background: var(--surface-color);
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid var(--border-color);
-        }
-
-        .pro-badge {
-            background: linear-gradient(135deg, #ff1e1e, #b30000);
-            color: #fff;
-            padding: 8px 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 0 0 10px var(--accent-glow);
-        }
-
-        .garage-preview {
-            flex: 1;
-            min-height: 160px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 15px;
-            background: radial-gradient(circle, #161924 0%, var(--bg-color) 90%);
-            border-radius: 16px;
-        }
-
-        .car-img-wrapper {
-            height: 90px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-
-        .car-img-wrapper img {
-            height: 100%;
-            object-fit: contain;
-        }
-        
-        .car-emoji-view {
-            font-size: 65px;
-            transform: scaleX(-1); /* Разворот эмодзи сбоку */
-        }
-
+        .garage-preview { flex: 1; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 15px; background: radial-gradient(circle, #161924 0%, var(--bg-color) 90%); border-radius: 16px; }
+        .car-img-wrapper { height: 90px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+        .car-emoji-view { font-size: 65px; transform: scaleX(-1); }
         .car-name { font-size: 20px; font-weight: 800; text-align: center; }
         .car-rarity { font-size: 11px; text-transform: uppercase; margin-top: 4px; font-weight: bold; text-align: center; }
 
-        .action-buttons-group { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
-
-        .btn {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 14px;
-            font-size: 16px;
-            font-weight: 800;
-            text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 0 4px 15px var(--accent-glow);
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .btn { background: var(--accent-color); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 15px var(--accent-glow); width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .btn:active { transform: scale(0.99); background: #cc1717; }
         .btn-secondary { background: var(--surface-color); border: 1px solid var(--border-color); box-shadow: none; color: #fff; }
 
-        .car-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            overflow-y: auto;
-            max-height: 180px;
-            margin-bottom: 15px;
-            background: rgba(0,0,0,0.3);
-            padding: 8px;
-            border-radius: 12px;
-        }
-
-        .car-card {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 8px 4px;
-            text-align: center;
-            cursor: pointer;
-            position: relative;
-        }
-
+        .car-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; max-height: 180px; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 12px; }
+        .car-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 4px; text-align: center; cursor: pointer; position: relative; }
         .car-card.active-selection { border-color: var(--accent-color); background: rgba(255,30,30,0.05); }
         .car-card.locked { opacity: 0.6; }
         .car-card .lock-lbl { position: absolute; top: 4px; right: 6px; font-size: 10px; }
 
-        /* --- БОЛЬШАЯ ТРАССА НА ЭКРАНЕ --- */
+        /* --- БЕСКОНЕЧНЫЙ ТРЕК --- */
         .track-container {
             width: 100%;
-            height: 310px; /* Увеличена почти в 2 раза */
+            height: 310px;
             background: #0d0f16;
             border-radius: 18px;
             border: 2px solid #282f42;
@@ -205,51 +73,38 @@
                 linear-gradient(rgba(255,255,255,0.03) 2px, transparent 2px),
                 linear-gradient(90deg, transparent 50%, #151824 50%);
             background-size: 100% 50px, 60px 100%;
-            animation: moveRoad 0.4s linear infinite;
+            /* Скорость анимации регулируется через JS */
+            animation: moveRoad 0.5s linear infinite;
             animation-play-state: paused;
         }
-        .asphalt.racing { animation-play-state: running; }
 
-        /* Полосы движения */
-        .lane-divider {
-            position: absolute;
-            width: 100%;
-            height: 1px;
-            background: rgba(255,255,255,0.1);
+        @keyframes moveRoad {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-60px); }
         }
+
+        .lane-divider { position: absolute; width: 100%; height: 1px; background: rgba(255,255,255,0.1); }
 
         .race-car-node {
             position: absolute;
             width: 75px;
             height: 45px;
-            transition: left 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            /* Плавное изменение позиции на трассе без рывков */
+            transition: left 0.15s ease-out;
             z-index: 10;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
         .race-car-node.emoji-car { font-size: 38px; transform: scaleX(-1); }
-        /* Инвертируем обратно текст тега пилота, чтобы он не отзеркаливался вместе с машиной */
         .race-car-node.emoji-car .tag { transform: translateX(50%) scaleX(-1); right: 50%; left: auto; }
 
-        .race-car-node img { width: 100%; height: 100%; object-fit: contain; }
-
         .race-car-node .tag {
-            position: absolute;
-            top: -16px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 9px;
-            background: rgba(0,0,0,0.85);
-            padding: 2px 6px;
-            border-radius: 4px;
-            white-space: nowrap;
-            color: #fff;
-            z-index: 20;
+            position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+            font-size: 9px; background: rgba(0,0,0,0.85); padding: 2px 6px;
+            border-radius: 4px; white-space: nowrap; color: #fff; z-index: 20;
         }
 
-        /* Анимация заноса (тряска) */
         @keyframes skidShake {
             0% { transform: translateY(0) rotate(0deg); }
             25% { transform: translateY(-3px) rotate(-5deg); }
@@ -258,53 +113,20 @@
         }
         .skidding { animation: skidShake 0.15s linear infinite !important; }
 
-        /* --- ПЕДАЛЬ И ЗОНА УПРАВЛЕНИЯ --- */
-        .pedal-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: var(--surface-color);
-            border-radius: 20px;
-            padding: 15px;
-            border: 1px solid var(--border-color);
-            min-height: 220px;
-        }
-
+        .pedal-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--surface-color); border-radius: 20px; padding: 15px; border: 1px solid var(--border-color); min-height: 220px; }
+        
         .gas-pedal {
-            width: 100px;
-            height: 170px;
+            width: 100px; height: 170px;
             background: linear-gradient(to bottom, #383e56 0%, #191d2a 100%);
-            border: 4px solid #4e5675;
-            border-radius: 20px;
-            position: relative;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-            transform-origin: bottom center;
-            transition: transform 0.05s;
+            border: 4px solid #4e5675; border-radius: 20px; position: relative; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6); transform-origin: bottom center; transition: transform 0.05s;
         }
-        .gas-pedal::before {
-            content: ''; position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px;
-            background: repeating-linear-gradient(to bottom, #111 0px, #111 4px, transparent 4px, transparent 12px);
-            opacity: 0.3; border-radius: 8px;
-        }
+        .gas-pedal::before { content: ''; position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; background: repeating-linear-gradient(to bottom, #111 0px, #111 4px, transparent 4px, transparent 12px); opacity: 0.3; border-radius: 8px; }
         .gas-pedal:active { transform: scale(0.96) rotateX(12deg); border-color: var(--accent-color); }
 
         .live-counter-box { display: flex; width: 100%; justify-content: space-between; margin-bottom: 10px; font-weight: bold; font-size: 14px; }
 
-        /* Всплывающий занос */
-        .skid-alert-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 30, 30, 0.4);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 99;
-            border-radius: 20px;
-        }
+        .skid-alert-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 30, 30, 0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99; border-radius: 20px; }
     </style>
 </head>
 <body>
@@ -314,7 +136,7 @@
     <!-- 1. ГЛАВНЫЙ ЭКРАН -->
     <div id="screen-menu" class="screen active">
         <h1>CCD RACE</h1>
-        <div class="subtitle">Королевская битва скоростей</div>
+        <div class="subtitle">Бесконечный Драйв</div>
 
         <div class="status-panel">
             <div>
@@ -333,15 +155,15 @@
         </div>
 
         <div class="action-buttons-group">
-            <button class="btn" onclick="startRaceMode('mmo')">🔥 Начать заезд (30 сек)</button>
+            <button class="btn" onclick="startRaceMode()">🔥 Начать заезд (30 сек)</button>
             <button class="btn btn-secondary" onclick="switchScreen('screen-garage')">🏁 Салон авто (13 моделей)</button>
         </div>
     </div>
 
-    <!-- 2. САЛОН МАШИН (3 БЕСПЛАТНЫХ + 10 ПЛАТНЫХ) -->
+    <!-- 2. САЛОН МАШИН -->
     <div id="screen-garage" class="screen">
         <h1>CCD Салон</h1>
-        <div class="subtitle">Монетизация и конфигурации</div>
+        <div class="subtitle">Монетизация парка</div>
 
         <div class="garage-preview" style="flex:0 0 130px; min-height:130px; margin-bottom:12px;">
             <div class="car-img-wrapper" style="height:60px;">
@@ -350,62 +172,53 @@
             <div class="car-name" id="garage-car-name" style="font-size:16px;">Сток Городской</div>
         </div>
 
-        <!-- Кнопки покупки -->
         <div id="garage-pay-box" class="action-buttons-group" style="margin-top: 0; margin-bottom: 12px; display:none; gap:8px;">
             <button class="btn" style="background:#ffae00; color:#000; padding:12px;" onclick="purchaseCar('stars')">Купить за 75 ⭐️</button>
             <button class="btn" style="background:#0077ff; padding:12px;" onclick="purchaseCar('kassa')">ЮKassa: 199 ₽</button>
         </div>
         <button id="garage-select-btn" class="btn" style="margin-bottom:12px; padding:12px; display:block;" onclick="applyCarSelection()">Выбрать этот болид</button>
 
-        <div class="car-grid" id="garage-grid">
-            <!-- Сюда JS загрузит 3 бесплатных и 10 платных авто -->
-        </div>
+        <div class="car-grid" id="garage-grid"></div>
 
         <button class="btn btn-secondary" onclick="switchScreen('screen-menu')">Назад</button>
     </div>
 
-    <!-- 3. ЭКРАН УВЕЛИЧЕННОЙ ТРАССЫ И КЛИКЕРА -->
+    <!-- 3. ИГРОВОЙ ЭКРАН -->
     <div id="screen-game" class="screen">
         <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <div style="font-weight:bold; font-size:12px; color:var(--text-muted)">МАСШТАБНЫЙ ТРЕК CCD</div>
+            <div style="font-weight:bold; font-size:12px; color:var(--text-muted)">МЕТРОВ ПРОЙДЕНО: <span id="distance-display" style="color:#fff;">0</span>м</div>
             <div style="color:var(--accent-color); font-weight:bold; font-size:13px;" id="timer-display">ВРЕМЯ: 30.0с</div>
         </div>
 
-        <!-- УВЕЛИЧЕННАЯ ТРАССА (310px) -->
         <div class="track-container">
             <div class="asphalt" id="asphalt-layer"></div>
             
-            <!-- Разделительные линии рядов движения -->
             <div class="lane-divider" style="top: 75px;"></div>
             <div class="lane-divider" style="top: 150px;"></div>
             <div class="lane-divider" style="top: 225px;"></div>
 
-            <!-- Боты (Злые и быстрые) -->
-            <div class="race-car-node emoji-car" id="bot1-node" style="left: 5%; top: 15px;"><div class="tag">Бот Агрессор</div>🏎️</div>
-            <div class="race-car-node emoji-car" id="bot2-node" style="left: 5%; top: 90px;"><div class="tag">Бот Шлейф</div>🚗</div>
+            <!-- Боты -->
+            <div class="race-car-node emoji-car" id="bot1-node" style="left: 20%; top: 15px;"><div class="tag">Бот Агрессор</div>🏎️</div>
+            <div class="race-car-node emoji-car" id="bot2-node" style="left: 15%; top: 90px;"><div class="tag">Бот Шлейф</div>🚗</div>
             
-            <!-- Игрок -->
-            <div class="race-car-node" id="player-node" style="left: 5%; top: 165px;">
+            <!-- Игрок (стартует на 30% экрана) -->
+            <div class="race-car-node" id="player-node" style="left: 30%; top: 165px;">
                 <div class="tag" style="border:1px solid var(--success-color); color:var(--success-color); background:#000;">Ты</div>
                 <div id="game-player-render" class="car-emoji-view" style="font-size:38px;">🚗</div>
             </div>
 
-            <div class="race-car-node emoji-car" id="bot3-node" style="left: 5%; top: 240px;"><div class="tag">Бот CCD-Pro</div>🚐</div>
+            <div class="race-car-node emoji-car" id="bot3-node" style="left: 10%; top: 240px;"><div class="tag">Бот CCD-Pro</div>🚐</div>
         </div>
 
-        <!-- УПРАВЛЕНИЕ И ПЕДАЛЬ -->
         <div class="pedal-container" style="position:relative;">
-            
-            <!-- Оверлей заноса -->
             <div class="skid-alert-overlay" id="skid-box" style="display: none;">
                 <div style="font-size:28px; margin-bottom:5px;">⚠️ ТЕБЯ ЗАНОСИТ!</div>
-                <div style="font-size:12px; margin-bottom:15px; text-transform:uppercase;">Потеря сцепления с асфальтом!</div>
                 <button class="btn" style="background:#fff; color:#000; width:80%;" onclick="recoverFromSkid()">⚡ СТАБИЛИЗИРОВАТЬ</button>
             </div>
 
             <div class="live-counter-box">
                 <div>СКОРОСТЬ: <span id="live-speed" style="color:var(--success-color);">0</span> км/ч</div>
-                <div>КЛИКИ: <span id="live-clicks" style="color:#ffae00;">0</span></div>
+                <div>ДИСТАНЦИЯ: <span id="live-clicks" style="color:#ffae00;">0</span> м</div>
             </div>
             
             <div class="gas-pedal" id="gas-pedal-btn"></div>
@@ -415,13 +228,11 @@
     <!-- 4. ФИНИШ -->
     <div id="screen-results" class="screen">
         <h1>Финиш заезда</h1>
-        <div class="subtitle">Результаты телеметрии ccd</div>
-
+        <div class="subtitle">Результаты гонки ccd</div>
         <div class="status-panel" style="flex-direction:column; justify-content:center; padding:30px 20px; margin: auto 0; text-align:center;">
             <div id="res-status" style="font-size:36px; font-weight:900; color:var(--success-color); margin-bottom:10px;">ПОБЕДА!</div>
             <p id="res-details" style="color:var(--text-muted); font-size:14px; line-height:1.6;"></p>
         </div>
-
         <button class="btn" onclick="switchScreen('screen-menu')" style="margin-top:auto;">В главное menu</button>
     </div>
 
@@ -433,39 +244,34 @@
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
         }
 
-        // База данных машин
         const carsDatabase = [
             { id: 0, isEmoji: true, render: '🚗', name: 'Сток Городской', locked: false },
             { id: 1, isEmoji: true, render: '🏎️', name: 'Формула Трек', locked: false },
             { id: 2, isEmoji: true, render: '🚐', name: 'CCD Вэн Стейдж', locked: false }
         ];
 
-        // Добавляем 10 платных кастомных машин
         for(let i = 1; i <= 10; i++) {
             carsDatabase.push({
-                id: i + 2,
-                isEmoji: false,
-                render: 'https://i.ibb.co/5R587yq/red-f1-side.png', // Сюда встанут твои картинки
-                name: `CCD Hyper Custom Spec-${i}`,
-                locked: true
+                id: i + 2, isEmoji: false,
+                render: 'https://i.ibb.co/5R587yq/red-f1-side.png',
+                name: `CCD Hyper Custom Spec-${i}`, locked: true
             });
         }
 
         let chosenCar = carsDatabase[0];
         let currentGarageCar = carsDatabase[0];
-        
-        // Премиум фичи
         let isPremium = false;
         
-        // Геймплей переменные
-        let clickCount = 0;
+        // Логика бесконечного движения
         let timeLeft = 30.0;
         let gameActive = false;
         let isSkidding = false;
-        let playerProgress = 5;
-        
-        let bot1Progress = 5, bot2Progress = 5, bot3Progress = 5;
-        let gameTimer, botTimer;
+
+        let playerSpeed = 0; 
+        let playerDistance = 0;
+        let bot1Distance = 0, bot2Distance = 0, bot3Distance = 0;
+
+        let gameTimer, physicsTimer;
 
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -473,23 +279,13 @@
             if(id === 'screen-garage') renderGarage();
         }
 
-        // ПРЕМИУМ (ОПЛАТА)
         function buyPremiumStatus() {
             if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            
-            // В продакшене вызываем официальное окно инвойса Телеграм Старс
-            tg.openInvoice("https://t.me/invoice/premium_features_link", function(status) {
-                if (status === 'paid') {
-                    activatePremium();
-                } else {
-                    // Симуляция для теста
-                    tg.showPopup({
-                        title: 'CCD PREMIUM',
-                        message: 'Активировать статус PREM? Фичи: \n• +15% к базовой скорости клика\n• Полный иммунитет к случайным заносам на трассе\n• Страховка от вылета',
-                        buttons: [{id: 'buy', text: 'Активировать (Тест)'}, {type:'cancel'}]
-                    }, (id) => { if(id === 'buy') activatePremium(); });
-                }
-            });
+            tg.showPopup({
+                title: 'CCD PREMIUM',
+                message: 'Активировать статус PREM? Фичи: \n• +15% к базовой скорости клика\n• Полный иммунитет к случайным заносам на трассе',
+                buttons: [{id: 'buy', text: 'Активировать (Тест)'}, {type:'cancel'}]
+            }, (id) => { if(id === 'buy') activatePremium(); });
         }
 
         function activatePremium() {
@@ -497,28 +293,19 @@
             document.getElementById('menu-pro-status').innerText = "PREMIUM Драйвер ⚡";
             document.getElementById('menu-pro-status').style.color = "var(--success-color)";
             document.getElementById('pro-buy-btn').style.display = "none";
-            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }
 
-        // РЕНДЕР САЛОНА
         function renderGarage() {
-            const grid = document.getElementById('garage-grid');
-            grid.innerHTML = '';
-            
+            const grid = document.getElementById('garage-grid'); grid.innerHTML = '';
             carsDatabase.forEach(car => {
                 const card = document.createElement('div');
                 card.className = `car-card ${car.locked ? 'locked' : ''} ${currentGarageCar.id === car.id ? 'active-selection' : ''}`;
-                
                 if(car.isEmoji) {
                     card.innerHTML = `<div style="font-size:24px; transform:scaleX(-1);">${car.render}</div><div style="font-size:9px; font-weight:bold; margin-top:4px;">${car.name}</div>`;
                 } else {
                     card.innerHTML = `<img src="${car.render}" style="width:100%; height:30px; object-fit:contain;"><div style="font-size:9px; font-weight:bold; margin-top:4px; color:#ffae00;">Платная</div>`;
                 }
-
-                if(car.locked) {
-                    card.innerHTML += `<span class="lock-lbl">🔒</span>`;
-                }
-
+                if(car.locked) card.innerHTML += `<span class="lock-lbl">🔒</span>`;
                 card.onclick = () => selectCar(car);
                 grid.appendChild(card);
             });
@@ -527,210 +314,166 @@
         function selectCar(car) {
             currentGarageCar = car;
             const renderBox = document.getElementById('garage-car-render');
-            
             if(car.isEmoji) {
-                renderBox.removeAttribute('style');
-                renderBox.className = "car-emoji-view";
-                renderBox.innerText = car.render;
+                renderBox.removeAttribute('style'); renderBox.className = "car-emoji-view"; renderBox.innerText = car.render;
             } else {
-                renderBox.className = "";
-                renderBox.innerHTML = `<img src="${car.render}" style="height:60px; object-fit:contain;">`;
+                renderBox.className = ""; renderBox.innerHTML = `<img src="${car.render}" style="height:60px; object-fit:contain;">`;
             }
-
             document.getElementById('garage-car-name').innerText = car.name;
-
-            const payBox = document.getElementById('garage-pay-box');
-            const selectBtn = document.getElementById('garage-select-btn');
-
-            if(car.locked) {
-                payBox.style.display = 'flex';
-                selectBtn.style.display = 'none';
-            } else {
-                payBox.style.display = 'block';
-                payBox.style.display = 'none';
-                selectBtn.style.display = 'block';
-            }
-
-            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            document.getElementById('garage-pay-box').style.display = car.locked ? 'flex' : 'none';
+            document.getElementById('garage-select-btn').style.display = car.locked ? 'none' : 'block';
             renderGarage();
         }
 
         function purchaseCar(method) {
-            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
             tg.showPopup({
                 title: 'Покупка авто',
-                message: `Разблокировать эту модель через ${method === 'stars' ? 'Telegram Stars ⭐️' : 'ЮKassa 💳'}?`,
+                message: `Разблокировать эту модель?`,
                 buttons: [{id:'ok', text:'Оплатить'}, {type:'cancel'}]
             }, (btn) => {
-                if(btn === 'ok') {
-                    currentGarageCar.locked = false;
-                    selectCar(currentGarageCar);
-                    if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                }
+                if(btn === 'ok') { currentGarageCar.locked = false; selectCar(currentGarageCar); }
             });
         }
 
         function applyCarSelection() {
             chosenCar = currentGarageCar;
-            
             const menuRender = document.getElementById('menu-car-render');
             if(chosenCar.isEmoji) {
-                menuRender.removeAttribute('style');
-                menuRender.className = "car-emoji-view";
-                menuRender.innerText = chosenCar.render;
+                menuRender.removeAttribute('style'); menuRender.className = "car-emoji-view"; menuRender.innerText = chosenCar.render;
             } else {
-                menuRender.className = "";
-                menuRender.innerHTML = `<img src="${chosenCar.render}" style="height:90px; object-fit:contain;">`;
+                menuRender.className = ""; menuRender.innerHTML = `<img src="${chosenCar.render}" style="height:90px; object-fit:contain;">`;
             }
-
             document.getElementById('main-car-name').innerText = chosenCar.name;
-            document.getElementById('main-car-status').innerText = chosenCar.locked ? "Заблокировано" : "Выбрано для заездов";
-            document.getElementById('main-car-status').style.color = chosenCar.locked ? "var(--accent-color)" : "var(--success-color)";
-            
             switchScreen('screen-menu');
         }
 
-        // ГЕЙМПЛЕЙ ГОНКИ (30 СЕКУНД + ЗЛЫЕ БОТЫ + ЗАНОСЫ)
+        // НАЧАЛО БЕСКОНЕЧНОГО ЗАЕЗДА
         function startRaceMode() {
             switchScreen('screen-game');
-            
-            // Настройка отображения игрока на трассе
             const pRender = document.getElementById('game-player-render');
             if(chosenCar.isEmoji) {
-                pRender.removeAttribute('style');
-                pRender.className = "car-emoji-view";
-                pRender.style.fontSize = "38px";
-                pRender.innerText = chosenCar.render;
+                pRender.removeAttribute('style'); pRender.className = "car-emoji-view"; pRender.style.fontSize = "38px"; pRender.innerText = chosenCar.render;
             } else {
-                pRender.className = "";
-                pRender.innerHTML = `<img src="${chosenCar.render}" style="width:75px; height:45px; object-fit:contain;">`;
+                pRender.className = ""; pRender.innerHTML = `<img src="${chosenCar.render}" style="width:75px; height:45px; object-fit:contain;">`;
             }
 
-            // Сброс параметров
-            clickCount = 0;
-            timeLeft = 30.0;
-            playerProgress = 5;
-            bot1Progress = 5; bot2Progress = 5; bot3Progress = 5;
-            gameActive = true;
-            isSkidding = false;
+            timeLeft = 30.0; playerSpeed = 0; playerDistance = 0;
+            bot1Distance = 0; bot2Distance = 0; bot3Distance = 0;
+            gameActive = true; isSkidding = false;
 
             document.getElementById('skid-box').style.display = 'none';
             document.getElementById('player-node').classList.remove('skidding');
-            document.getElementById('live-clicks').innerText = '0';
-            document.getElementById('live-speed').innerText = '0';
+            document.getElementById('asphalt-layer').style.animationPlayState = 'running';
 
-            document.getElementById('asphalt-layer').classList.add('racing');
-
-            updatePositions();
-
-            // Основной таймер гонки
+            // Основной таймер времени
             gameTimer = setInterval(() => {
                 timeLeft -= 0.1;
-                if(timeLeft <= 0) {
-                    timeLeft = 0;
-                    endRace();
-                }
+                if(timeLeft <= 0) { timeLeft = 0; endRace(); }
                 document.getElementById('timer-display').innerText = `ВРЕМЯ: ${timeLeft.toFixed(1)}с`;
 
-                // Вероятность случайного заноса (каждые пару секунд с шансом 3%), если нет Премиума
-                if(!isPremium && !isSkidding && timeLeft < 28 && Math.random() < 0.02) {
-                    triggerSkid();
-                }
+                if(!isPremium && !isSkidding && timeLeft < 28 && Math.random() < 0.03) triggerSkid();
             }, 100);
 
-            // Таймер интеллекта ЗЛЫХ ботов
-            botTimer = setInterval(() => {
+            // Физический движок расчета дистанций и положения на экране (без стенок!)
+            physicsTimer = setInterval(() => {
                 if(!gameActive) return;
 
-                // Чем меньше времени осталось, тем злее и быстрее едут боты (нарастание агрессии)
-                let aggressionFactor = (30 - timeLeft) * 0.12; 
+                // Естественное торможение (трение)
+                if(playerSpeed > 0) playerSpeed -= 0.8;
+                if(playerSpeed < 0) playerSpeed = 0;
+
+                // Злые боты едут стабильно и ускоряются к концу
+                let aggression = (30 - timeLeft) * 0.4;
+                bot1Distance += (1.9 + Math.random() * 0.6 + aggression);
+                bot2Distance += (2.1 + Math.random() * 0.4 + aggression);
+                bot3Distance += (1.7 + Math.random() * 0.8 + aggression);
+
+                playerDistance += (playerSpeed * 0.05);
+
+                // Вычисляем положение на экране относительно друг друга
+                // Базовая точка игрока — 30% экрана. Остальные смещаются в зависимости от разности дистанций.
+                let maxDist = Math.max(playerDistance, bot1Distance, bot2Distance, bot3Distance, 1);
                 
-                bot1Progress += (Math.random() * 2.2 + aggressionFactor);
-                bot2Progress += (Math.random() * 2.5 + aggressionFactor);
-                bot3Progress += (Math.random() * 2.0 + aggressionFactor);
+                let pVisual = 15 + (playerDistance / maxDist) * 55;
+                let b1Visual = 15 + (bot1Distance / maxDist) * 55;
+                let b2Visual = 15 + (bot2Distance / maxDist) * 55;
+                let b3Visual = 15 + (bot3Distance / maxDist) * 55;
 
-                if(bot1Progress > 85) bot1Progress = 85;
-                if(bot2Progress > 85) bot2Progress = 85;
-                if(bot3Progress > 85) bot3Progress = 85;
+                // Обновляем позиции на экране
+                document.getElementById('player-node').style.left = `${pVisual}%`;
+                document.getElementById('bot1-node').style.left = `${b1Visual}%`;
+                document.getElementById('bot2-node').style.left = `${b2Visual}%`;
+                document.getElementById('bot3-node').style.left = `${b3Visual}%`;
 
-                updatePositions();
-            }, 200);
+                // Меняем скорость анимации асфальта под скорость игрока
+                let animSpeed = playerSpeed > 0 ? (200 / playerSpeed) : 0;
+                const asphalt = document.getElementById('asphalt-layer');
+                if(animSpeed > 0) {
+                    asphalt.style.animationPlayState = 'running';
+                    asphalt.style.animationDuration = `${Math.max(0.1, animSpeed)}s`;
+                } else {
+                    asphalt.style.animationPlayState = 'paused';
+                }
+
+                document.getElementById('live-speed').innerText = Math.floor(playerSpeed * 3.5);
+                document.getElementById('live-clicks').innerText = Math.floor(playerDistance);
+                document.getElementById('distance-display').innerText = Math.floor(playerDistance);
+
+            }, 50);
         }
 
-        // ЛОГИКА ТАПА ПО ПЕДАЛИ
+        // ТАП ПО ПЕДАЛИ ГАЗА
         document.getElementById('gas-pedal-btn').addEventListener('touchstart', (e) => {
             e.preventDefault();
             if(!gameActive || isSkidding) return;
 
-            clickCount++;
-            document.getElementById('live-clicks').innerText = clickCount;
+            let bonus = isPremium ? 1.15 : 1.0;
+            playerSpeed += (8 * bonus);
+            if(playerSpeed > 120) playerSpeed = 120; // Ограничение максималки
 
-            // Премиум даёт бонус к скорости
-            let speedBonus = isPremium ? 1.15 : 1.0;
-            document.getElementById('live-speed').innerText = Math.floor(clickCount * 6.5 * speedBonus);
-
-            playerProgress += (1.4 * speedBonus);
-            if(playerProgress > 85) playerProgress = 85;
-
-            updatePositions();
             if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
 
-        // ВКЛЮЧЕНИЕ СЛУЧАЙНОГО ЗАНОСА
         function triggerSkid() {
             isSkidding = true;
+            playerSpeed = playerSpeed * 0.3; // Резкая потеря скорости при заносе
             document.getElementById('skid-box').style.display = 'flex';
             document.getElementById('player-node').classList.add('skidding');
-            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
         }
 
-        // ВЫРАВНИВАНИЕ МАШИНЫ ИЗ ЗАНОСА
         function recoverFromSkid() {
             isSkidding = false;
             document.getElementById('skid-box').style.display = 'none';
             document.getElementById('player-node').classList.remove('skidding');
-            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }
 
-        function updatePositions() {
-            document.getElementById('player-node').style.left = `${playerProgress}%`;
-            document.getElementById('bot1-node').style.left = `${bot1Progress}%`;
-            document.getElementById('bot2-node').style.left = `${bot2Progress}%`;
-            document.getElementById('bot3-node').style.left = `${bot3Progress}%`;
-        }
-
-        // ПОДВЕДЕНИЕ ИТОГОВ
         function endRace() {
             gameActive = false;
             clearInterval(gameTimer);
-            clearInterval(botTimer);
-            document.getElementById('asphalt-layer').classList.remove('racing');
+            clearInterval(physicsTimer);
+            document.getElementById('asphalt-layer').style.animationPlayState = 'paused';
 
             switchScreen('screen-results');
-
             const statusTxt = document.getElementById('res-status');
             const detailsTxt = document.getElementById('res-details');
 
             let finalScores = [
-                { name: 'Ты', pos: playerProgress, isPlayer: true },
-                { name: 'Бот Агрессор', pos: bot1Progress },
-                { name: 'Бот Шлейф', pos: bot2Progress },
-                { name: 'Бот CCD-Pro', pos: bot3Progress }
+                { name: 'Ты', dist: playerDistance, isPlayer: true },
+                { name: 'Бот Агрессор', dist: bot1Distance },
+                { name: 'Бот Шлейф', dist: bot2Distance },
+                { name: 'Бот CCD-Pro', dist: bot3Distance }
             ];
+            finalScores.sort((a,b) => b.dist - a.dist);
+            let place = finalScores.findIndex(x => x.isPlayer) + 1;
 
-            finalScores.sort((a,b) => b.pos - a.pos);
-            let finalPlace = finalScores.findIndex(x => x.isPlayer) + 1;
-
-            if(finalPlace === 1) {
+            if(place === 1) {
                 statusTxt.innerText = "1 МЕСТО! 🏆";
                 statusTxt.style.color = "var(--success-color)";
-                detailsTxt.innerText = `Невероятный пилотаж! Злые боты разорваны на треке. Суммарно сделано тапов по педали: ${clickCount}.`;
-                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                detailsTxt.innerText = `Ты чемпион бесконечного трека! Дистанция: ${Math.floor(playerDistance)} метров. Роботы остались далеко позади!`;
             } else {
-                statusTxt.innerText = `${finalPlace} МЕСТО`;
+                statusTxt.innerText = `${place} МЕСТО`;
                 statusTxt.style.color = "var(--accent-color)";
-                detailsTxt.innerText = `Боты обошли тебя на финишной прямой. Место: ${finalPlace}/4. Тапов по педали: ${clickCount}. Прокачайся в салоне или активируй PREM!`;
-                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                detailsTxt.innerText = `Боты вырвались вперед по общей дистанции. Твой результат: ${Math.floor(playerDistance)}м. Место: ${place}/4.`;
             }
         }
     </script>
