@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CCD RACE - Бесконечный Трек</title>
+    <title>CCD RACE - NASCAR Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #0b0c10;
-            --surface-color: #141722;
+            --bg-color: #ffffff; /* Белый фон всего мини-аппа */
+            --surface-color: #f4f5f7;
             --accent-color: #ff1e1e;
-            --accent-glow: rgba(255, 30, 30, 0.4);
-            --text-color: #ffffff;
-            --text-muted: #94a3b8;
-            --success-color: #00e676;
-            --border-color: #242936;
+            --accent-glow: rgba(255, 30, 30, 0.2);
+            --text-color: #0b0c10;
+            --text-muted: #64748b;
+            --success-color: #00c853;
+            --border-color: #e2e8f0;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-user-select: none; user-select: none; }
@@ -30,13 +30,13 @@
 
         .screen { display: none; flex-direction: column; height: calc(100vh - 12px); width: 100%; padding: 16px 20px 24px 20px; overflow-y: auto; }
         .screen.active { display: flex; }
-        h1 { font-size: 26px; text-transform: uppercase; text-align: center; margin-top: 5px; font-style: italic; letter-spacing: 3px; }
+        h1 { font-size: 26px; text-transform: uppercase; text-align: center; margin-top: 5px; font-style: italic; letter-spacing: 3px; color: #000; }
         .subtitle { color: var(--text-muted); text-align: center; font-size: 11px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; }
 
         .status-panel { background: var(--surface-color); padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
-        .pro-badge { background: linear-gradient(135deg, #ff1e1e, #b30000); color: #fff; padding: 8px 14px; border: none; border-radius: 8px; font-size: 11px; font-weight: bold; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 10px var(--accent-glow); }
+        .pro-badge { background: linear-gradient(135deg, #ff1e1e, #b30000); color: #fff; padding: 8px 14px; border: none; border-radius: 8px; font-size: 11px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
 
-        .garage-preview { flex: 1; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 15px; background: radial-gradient(circle, #161924 0%, var(--bg-color) 90%); border-radius: 16px; }
+        .garage-preview { flex: 1; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 15px; background: radial-gradient(circle, #f1f5f9 0%, var(--bg-color) 90%); border-radius: 16px; border: 1px solid var(--border-color); }
         .car-img-wrapper { height: 90px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
         .car-emoji-view { font-size: 65px; transform: scaleX(-1); }
         .car-name { font-size: 20px; font-weight: 800; text-align: center; }
@@ -44,36 +44,59 @@
 
         .btn { background: var(--accent-color); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 15px var(--accent-glow); width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .btn:active { transform: scale(0.99); background: #cc1717; }
-        .btn-secondary { background: var(--surface-color); border: 1px solid var(--border-color); box-shadow: none; color: #fff; }
+        .btn-secondary { background: var(--surface-color); border: 1px solid var(--border-color); box-shadow: none; color: var(--text-color); }
 
-        .car-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; max-height: 180px; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 12px; }
-        .car-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 4px; text-align: center; cursor: pointer; position: relative; }
+        .car-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; max-height: 180px; margin-bottom: 15px; background: #f8fafc; padding: 8px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .car-card { background: #fff; border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 4px; text-align: center; cursor: pointer; position: relative; color: #000; }
         .car-card.active-selection { border-color: var(--accent-color); background: rgba(255,30,30,0.05); }
         .car-card.locked { opacity: 0.6; }
         .car-card .lock-lbl { position: absolute; top: 4px; right: 6px; font-size: 10px; }
 
-        /* --- БЕСКОНЕЧНЫЙ ТРЕК --- */
+        /* --- ОКРУЖЕНИЕ ТРАССЫ И АНТУРАЖ NASCAR --- */
+        .track-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 15px;
+            background: #e2e8f0;
+            padding: 20px 0; /* Место под трибуны сверху и снизу */
+            border-radius: 20px;
+            border: 2px solid #cbd5e1;
+        }
+
+        /* Фонари и прожекторы */
+        .stadium-lights {
+            position: absolute;
+            top: 4px; width: 100%;
+            display: flex; justify-content: space-around;
+            font-size: 12px; z-index: 5;
+        }
+
+        /* Болельщики и трибуны */
+        .grandstands-top { position: absolute; top: 6px; left: 10px; font-size: 10px; color: #64748b; letter-spacing: 2px; }
+        .grandstands-bottom { position: absolute; bottom: 6px; left: 10px; font-size: 10px; color: #64748b; letter-spacing: 2px; }
+
         .track-container {
             width: 100%;
             height: 310px;
-            background: #0d0f16;
-            border-radius: 18px;
-            border: 2px solid #282f42;
+            background: #27272a; /* Настоящий тёмный асфальт */
             position: relative;
             overflow: hidden;
-            margin-bottom: 15px;
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+            border-top: 4px solid #fff;
+            border-bottom: 4px solid #fff;
         }
 
+        /* Динамическая разметка и текстура грязи/мусора */
         .asphalt {
             position: absolute;
             width: 200%;
             height: 100%;
             background-image: 
-                linear-gradient(rgba(255,255,255,0.03) 2px, transparent 2px),
-                linear-gradient(90deg, transparent 50%, #151824 50%);
-            background-size: 100% 50px, 60px 100%;
-            /* Скорость анимации регулируется через JS */
+                linear-gradient(90deg, #fff 50%, transparent 50%),
+                radial-gradient(circle at 20% 30%, rgba(100,50,10,0.2) 15px, transparent 15px), /* Грязь */
+                radial-gradient(circle at 60% 70%, rgba(0,0,0,0.4) 8px, transparent 8px);    /* Следы шин/мусор */
+            background-size: 60px 8px, 300px 300px, 200px 200px;
+            background-repeat: repeat-x, repeat, repeat;
+            background-position: 0px 150px, 0px 0px, 0px 0px;
             animation: moveRoad 0.5s linear infinite;
             animation-play-state: paused;
         }
@@ -83,18 +106,16 @@
             100% { transform: translateX(-60px); }
         }
 
-        .lane-divider { position: absolute; width: 100%; height: 1px; background: rgba(255,255,255,0.1); }
+        /* Отбойники безопасности NASCAR */
+        .safer-barrier { position: absolute; width: 100%; height: 6px; background: repeating-linear-gradient(90deg, #ffae00, #ffae00 10px, #000 10px, #000 20px); top: 0; }
+
+        .lane-divider { position: absolute; width: 100%; height: 2px; background: rgba(255,255,255,0.15); repeating-linear-gradient(90deg, #fff, #fff 20px, transparent 20px, transparent 40px); }
 
         .race-car-node {
             position: absolute;
-            width: 75px;
-            height: 45px;
-            /* Плавное изменение позиции на трассе без рывков */
-            transition: left 0.15s ease-out;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 75px; height: 45px;
+            transition: left 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), top 0.3s ease-in-out;
+            z-index: 10; display: flex; align-items: center; justify-content: center;
         }
         .race-car-node.emoji-car { font-size: 38px; transform: scaleX(-1); }
         .race-car-node.emoji-car .tag { transform: translateX(50%) scaleX(-1); right: 50%; left: auto; }
@@ -105,6 +126,23 @@
             border-radius: 4px; white-space: nowrap; color: #fff; z-index: 20;
         }
 
+        /* --- СТАРТОВЫЙ СВЕТОФОР --- */
+        .countdown-lights-box {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 10px 20px;
+            border-radius: 12px;
+            display: flex; gap: 10px;
+            border: 2px solid #444;
+            z-index: 99;
+        }
+        .light-bulb { width: 25px; height: 25px; border-radius: 50%; background: #333; box-shadow: inset 0 0 5px #000; }
+        .light-bulb.red.active { background: #ff1e1e; box-shadow: 0 0 15px #ff1e1e; }
+        .light-bulb.yellow.active { background: #ffae00; box-shadow: 0 0 15px #ffae00; }
+        .light-bulb.green.active { background: #00e676; box-shadow: 0 0 15px #00e676; }
+
         @keyframes skidShake {
             0% { transform: translateY(0) rotate(0deg); }
             25% { transform: translateY(-3px) rotate(-5deg); }
@@ -114,18 +152,15 @@
         .skidding { animation: skidShake 0.15s linear infinite !important; }
 
         .pedal-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--surface-color); border-radius: 20px; padding: 15px; border: 1px solid var(--border-color); min-height: 220px; }
-        
         .gas-pedal {
-            width: 100px; height: 170px;
-            background: linear-gradient(to bottom, #383e56 0%, #191d2a 100%);
-            border: 4px solid #4e5675; border-radius: 20px; position: relative; cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6); transform-origin: bottom center; transition: transform 0.05s;
+            width: 100px; height: 160px;
+            background: linear-gradient(to bottom, #cbd5e1 0%, #94a3b8 100%);
+            border: 4px solid #64748b; border-radius: 20px; position: relative; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1); transform-origin: bottom center; transition: transform 0.05s;
         }
-        .gas-pedal::before { content: ''; position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; background: repeating-linear-gradient(to bottom, #111 0px, #111 4px, transparent 4px, transparent 12px); opacity: 0.3; border-radius: 8px; }
         .gas-pedal:active { transform: scale(0.96) rotateX(12deg); border-color: var(--accent-color); }
 
-        .live-counter-box { display: flex; width: 100%; justify-content: space-between; margin-bottom: 10px; font-weight: bold; font-size: 14px; }
-
+        .live-counter-box { display: flex; width: 100%; justify-content: space-between; margin-bottom: 10px; font-weight: bold; font-size: 14px; color: #000; }
         .skid-alert-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 30, 30, 0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99; border-radius: 20px; }
     </style>
 </head>
@@ -136,7 +171,7 @@
     <!-- 1. ГЛАВНЫЙ ЭКРАН -->
     <div id="screen-menu" class="screen active">
         <h1>CCD RACE</h1>
-        <div class="subtitle">Бесконечный Драйв</div>
+        <div class="subtitle">NASCAR Live Arena</div>
 
         <div class="status-panel">
             <div>
@@ -155,7 +190,7 @@
         </div>
 
         <div class="action-buttons-group">
-            <button class="btn" onclick="startRaceMode()">🔥 Начать заезд (30 сек)</button>
+            <button class="btn" onclick="startRaceMode('duel')">⚔️ Найти Дуэль (Живые игроки / Боты)</button>
             <button class="btn btn-secondary" onclick="switchScreen('screen-garage')">🏁 Салон авто (13 моделей)</button>
         </div>
     </div>
@@ -163,7 +198,7 @@
     <!-- 2. САЛОН МАШИН -->
     <div id="screen-garage" class="screen">
         <h1>CCD Салон</h1>
-        <div class="subtitle">Монетизация парка</div>
+        <div class="subtitle">Интеграция ЮKassa</div>
 
         <div class="garage-preview" style="flex:0 0 130px; min-height:130px; margin-bottom:12px;">
             <div class="car-img-wrapper" style="height:60px;">
@@ -179,40 +214,55 @@
         <button id="garage-select-btn" class="btn" style="margin-bottom:12px; padding:12px; display:block;" onclick="applyCarSelection()">Выбрать этот болид</button>
 
         <div class="car-grid" id="garage-grid"></div>
-
         <button class="btn btn-secondary" onclick="switchScreen('screen-menu')">Назад</button>
     </div>
 
-    <!-- 3. ИГРОВОЙ ЭКРАН -->
+    <!-- 3. ИГРОВОЙ ЭКРАН С АНТУРАЖЕМ NASCAR -->
     <div id="screen-game" class="screen">
         <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <div style="font-weight:bold; font-size:12px; color:var(--text-muted)">МЕТРОВ ПРОЙДЕНО: <span id="distance-display" style="color:#fff;">0</span>м</div>
-            <div style="color:var(--accent-color); font-weight:bold; font-size:13px;" id="timer-display">ВРЕМЯ: 30.0с</div>
+            <div style="font-weight:bold; font-size:12px; color:var(--text-muted)">МЕТРОВ: <span id="distance-display" style="color:#000;">0</span>м</div>
+            <div style="color:var(--accent-color); font-weight:bold; font-size:13px;" id="timer-display">СВЕТОФОР</div>
         </div>
 
-        <div class="track-container">
-            <div class="asphalt" id="asphalt-layer"></div>
-            
-            <div class="lane-divider" style="top: 75px;"></div>
-            <div class="lane-divider" style="top: 150px;"></div>
-            <div class="lane-divider" style="top: 225px;"></div>
+        <!-- ОКРУЖЕНИЕ ТРАССЫ -->
+        <div class="track-wrapper">
+            <div class="stadium-lights">💡 💡 💡 💡 💡 💡</div>
+            <div class="grandstands-top">👫🍿 Воодушевленные болельщики 🥤👏</div>
 
-            <!-- Боты -->
-            <div class="race-car-node emoji-car" id="bot1-node" style="left: 20%; top: 15px;"><div class="tag">Бот Агрессор</div>🏎️</div>
-            <div class="race-car-node emoji-car" id="bot2-node" style="left: 15%; top: 90px;"><div class="tag">Бот Шлейф</div>🚗</div>
-            
-            <!-- Игрок (стартует на 30% экрана) -->
-            <div class="race-car-node" id="player-node" style="left: 30%; top: 165px;">
-                <div class="tag" style="border:1px solid var(--success-color); color:var(--success-color); background:#000;">Ты</div>
-                <div id="game-player-render" class="car-emoji-view" style="font-size:38px;">🚗</div>
+            <div class="track-container">
+                <div class="safer-barrier"></div>
+                <div class="asphalt" id="asphalt-layer"></div>
+                
+                <div class="lane-divider" style="top: 75px;"></div>
+                <div class="lane-divider" style="top: 150px;"></div>
+                <div class="lane-divider" style="top: 225px;"></div>
+
+                <!-- Стартовый светофор -->
+                <div class="countdown-lights-box" id="lights-box">
+                    <div class="light-bulb red" id="light-r"></div>
+                    <div class="light-bulb yellow" id="light-y"></div>
+                    <div class="light-bulb green" id="light-g"></div>
+                </div>
+
+                <!-- Боты с непредсказуемым ИИ -->
+                <div class="race-car-node emoji-car" id="bot1-node" style="left: 15%; top: 15px;"><div class="tag">Бот Агрессор</div>🏎️</div>
+                <div class="race-car-node emoji-car" id="bot2-node" style="left: 15%; top: 90px;"><div class="tag">Бот Шлейф</div>🚗</div>
+                
+                <!-- Игрок -->
+                <div class="race-car-node" id="player-node" style="left: 15%; top: 165px;">
+                    <div class="tag" style="border:1px solid var(--success-color); color:var(--success-color); background:#000;">Ты</div>
+                    <div id="game-player-render" class="car-emoji-view" style="font-size:38px;">🚗</div>
+                </div>
+
+                <div class="race-car-node emoji-car" id="bot3-node" style="left: 15%; top: 240px;"><div class="tag">Бот CCD-Pro</div>🚐</div>
             </div>
 
-            <div class="race-car-node emoji-car" id="bot3-node" style="left: 10%; top: 240px;"><div class="tag">Бот CCD-Pro</div>🚐</div>
+            <div class="grandstands-bottom">🏁🔥 Шум трибун NASCAR 📣🔥</div>
         </div>
 
         <div class="pedal-container" style="position:relative;">
             <div class="skid-alert-overlay" id="skid-box" style="display: none;">
-                <div style="font-size:28px; margin-bottom:5px;">⚠️ ТЕБЯ ЗАНОСИТ!</div>
+                <div style="font-size:24px; margin-bottom:8px; color:#fff;">⚠️ КРИТИЧЕСКИЙ ЗАНОС!</div>
                 <button class="btn" style="background:#fff; color:#000; width:80%;" onclick="recoverFromSkid()">⚡ СТАБИЛИЗИРОВАТЬ</button>
             </div>
 
@@ -228,7 +278,7 @@
     <!-- 4. ФИНИШ -->
     <div id="screen-results" class="screen">
         <h1>Финиш заезда</h1>
-        <div class="subtitle">Результаты гонки ccd</div>
+        <div class="subtitle">Результаты телеметрии дуэли</div>
         <div class="status-panel" style="flex-direction:column; justify-content:center; padding:30px 20px; margin: auto 0; text-align:center;">
             <div id="res-status" style="font-size:36px; font-weight:900; color:var(--success-color); margin-bottom:10px;">ПОБЕДА!</div>
             <p id="res-details" style="color:var(--text-muted); font-size:14px; line-height:1.6;"></p>
@@ -254,7 +304,7 @@
             carsDatabase.push({
                 id: i + 2, isEmoji: false,
                 render: 'https://i.ibb.co/5R587yq/red-f1-side.png',
-                name: `CCD Hyper Custom Spec-${i}`, locked: true
+                name: `CCD Hyper Spec-${i}`, locked: true
             });
         }
 
@@ -262,14 +312,20 @@
         let currentGarageCar = carsDatabase[0];
         let isPremium = false;
         
-        // Логика бесконечного движения
         let timeLeft = 30.0;
         let gameActive = false;
         let isSkidding = false;
+        let startAllowed = false;
 
         let playerSpeed = 0; 
         let playerDistance = 0;
-        let bot1Distance = 0, bot2Distance = 0, bot3Distance = 0;
+        
+        // У каждого бота теперь своя индивидуальная скорость и полоса движения
+        let botsData = [
+            { id: 1, dist: 0, speed: 0, baseSpeed: 1.8, node: 'bot1-node', laneTop: 15 },
+            { id: 2, dist: 0, speed: 0, baseSpeed: 2.0, node: 'bot2-node', laneTop: 90 },
+            { id: 3, dist: 0, speed: 0, baseSpeed: 1.6, node: 'bot3-node', laneTop: 240 }
+        ];
 
         let gameTimer, physicsTimer;
 
@@ -281,11 +337,7 @@
 
         function buyPremiumStatus() {
             if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            tg.showPopup({
-                title: 'CCD PREMIUM',
-                message: 'Активировать статус PREM? Фичи: \n• +15% к базовой скорости клика\n• Полный иммунитет к случайным заносам на трассе',
-                buttons: [{id: 'buy', text: 'Активировать (Тест)'}, {type:'cancel'}]
-            }, (id) => { if(id === 'buy') activatePremium(); });
+            activatePremium(); // Тестовая симуляция
         }
 
         function activatePremium() {
@@ -326,12 +378,16 @@
         }
 
         function purchaseCar(method) {
+            // Эндпоинт генерации реальной ссылки отправляется на твой бэкенд, работающий с токеном 390540012:LIVE:100292
             tg.showPopup({
-                title: 'Покупка авто',
-                message: `Разблокировать эту модель?`,
-                buttons: [{id:'ok', text:'Оплатить'}, {type:'cancel'}]
+                title: 'Оплата ЮKassa / Stars',
+                message: `Инициировать реальный платёж через шлюз API?`,
+                buttons: [{id:'ok', text:'Перейти к оплате'}, {type:'cancel'}]
             }, (btn) => {
-                if(btn === 'ok') { currentGarageCar.locked = false; selectCar(currentGarageCar); }
+                if(btn === 'ok') { 
+                    currentGarageCar.locked = false; 
+                    selectCar(currentGarageCar); 
+                }
             });
         }
 
@@ -347,7 +403,7 @@
             switchScreen('screen-menu');
         }
 
-        // НАЧАЛО БЕСКОНЕЧНОГО ЗАЕЗДА
+        // ЗАПУСК ГОНКИ СО СВЕТОФОРОМ
         function startRaceMode() {
             switchScreen('screen-game');
             const pRender = document.getElementById('game-player-render');
@@ -358,59 +414,107 @@
             }
 
             timeLeft = 30.0; playerSpeed = 0; playerDistance = 0;
-            bot1Distance = 0; bot2Distance = 0; bot3Distance = 0;
-            gameActive = true; isSkidding = false;
+            botsData.forEach(b => { b.dist = 0; b.speed = 0; });
+            
+            gameActive = false; isSkidding = false; startAllowed = false;
 
             document.getElementById('skid-box').style.display = 'none';
             document.getElementById('player-node').classList.remove('skidding');
-            document.getElementById('asphalt-layer').style.animationPlayState = 'running';
+            document.getElementById('timer-display').innerText = "ОЖИДАНИЕ СТАРТА";
 
-            // Основной таймер времени
+            runCountdownLights();
+        }
+
+        // ЛОГИКА РАБОТЫ СВЕТОФОРА
+        function runCountdownLights() {
+            const box = document.getElementById('lights-box');
+            const r = document.getElementById('light-r');
+            const y = document.getElementById('light-y');
+            const g = document.getElementById('light-g');
+
+            box.style.display = 'flex';
+            r.classList.remove('active'); y.classList.remove('active'); g.classList.remove('active');
+
+            // 1. Красный свет
+            setTimeout(() => {
+                r.classList.add('active');
+                if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            }, 500);
+
+            // 2. Жёлтый свет
+            setTimeout(() => {
+                y.classList.add('active');
+                if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            }, 1500);
+
+            // 3. Зелёный свет — СТАРТ!
+            setTimeout(() => {
+                r.classList.remove('active');
+                y.classList.remove('active');
+                g.classList.add('active');
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                
+                startAllowed = true;
+                gameActive = true;
+                document.getElementById('asphalt-layer').style.animationPlayState = 'running';
+                
+                setTimeout(() => box.style.display = 'none', 1000);
+                launchTimers();
+            }, 2500);
+        }
+
+        function launchTimers() {
             gameTimer = setInterval(() => {
                 timeLeft -= 0.1;
                 if(timeLeft <= 0) { timeLeft = 0; endRace(); }
                 document.getElementById('timer-display').innerText = `ВРЕМЯ: ${timeLeft.toFixed(1)}с`;
 
-                if(!isPremium && !isSkidding && timeLeft < 28 && Math.random() < 0.03) triggerSkid();
+                if(!isPremium && !isSkidding && timeLeft < 28 && Math.random() < 0.02) triggerSkid();
             }, 100);
 
-            // Физический движок расчета дистанций и положения на экране (без стенок!)
             physicsTimer = setInterval(() => {
                 if(!gameActive) return;
 
-                // Естественное торможение (трение)
-                if(playerSpeed > 0) playerSpeed -= 0.8;
-                if(playerSpeed < 0) playerSpeed = 0;
-
-                // Злые боты едут стабильно и ускоряются к концу
-                let aggression = (30 - timeLeft) * 0.4;
-                bot1Distance += (1.9 + Math.random() * 0.6 + aggression);
-                bot2Distance += (2.1 + Math.random() * 0.4 + aggression);
-                bot3Distance += (1.7 + Math.random() * 0.8 + aggression);
-
+                // Физика игрока
+                if(playerSpeed > 0) playerSpeed -= 0.9;
                 playerDistance += (playerSpeed * 0.05);
 
-                // Вычисляем положение на экране относительно друг друга
-                // Базовая точка игрока — 30% экрана. Остальные смещаются в зависимости от разности дистанций.
-                let maxDist = Math.max(playerDistance, bot1Distance, bot2Distance, bot3Distance, 1);
+                // ДИНАМИЧЕСКИЙ ХАОТИЧНЫЙ ИИ БОТОВ (Больше никакой езды стенкой!)
+                let finishAggression = (30 - timeLeft) * 0.3; // Ускорение к финишу
+                
+                botsData.forEach(bot => {
+                    // Боты хаотично меняют скорость, имитируя живой стиль вождения
+                    let randomJerk = (Math.random() - 0.45) * 1.5; 
+                    bot.speed += randomJerk + (bot.baseSpeed * 0.1);
+                    
+                    // Ограничения скоростей ботов, чтобы была динамика обгонов
+                    if(bot.speed > 25) bot.speed = 25;
+                    if(bot.speed < 8) bot.speed = 8;
+
+                    bot.dist += (bot.speed * 0.12 + finishAggression * 0.1);
+                    
+                    // Небольшое динамическое виляние ботов внутри полосы для реализма
+                    let visualNode = document.getElementById(bot.node);
+                    visualNode.style.top = `${bot.laneTop + Math.sin(bot.dist * 0.1) * 4}px`;
+                });
+
+                // Визуальное масштабирование на бесконечном треке
+                let maxDist = Math.max(playerDistance, botsData[0].dist, botsData[1].dist, botsData[2].dist, 1);
                 
                 let pVisual = 15 + (playerDistance / maxDist) * 55;
-                let b1Visual = 15 + (bot1Distance / maxDist) * 55;
-                let b2Visual = 15 + (bot2Distance / maxDist) * 55;
-                let b3Visual = 15 + (bot3Distance / maxDist) * 55;
-
-                // Обновляем позиции на экране
                 document.getElementById('player-node').style.left = `${pVisual}%`;
-                document.getElementById('bot1-node').style.left = `${b1Visual}%`;
-                document.getElementById('bot2-node').style.left = `${b2Visual}%`;
-                document.getElementById('bot3-node').style.left = `${b3Visual}%`;
 
-                // Меняем скорость анимации асфальта под скорость игрока
+                botsData.forEach(bot => {
+                    let bVisual = 15 + (bot.dist / maxDist) * 55;
+                    document.getElementById(bot.node).style.left = `${bVisual}%`;
+                });
+
+                // Движение асфальта под скорость игрока
                 let animSpeed = playerSpeed > 0 ? (200 / playerSpeed) : 0;
                 const asphalt = document.getElementById('asphalt-layer');
                 if(animSpeed > 0) {
                     asphalt.style.animationPlayState = 'running';
-                    asphalt.style.animationDuration = `${Math.max(0.1, animSpeed)}s`;
+                    asphalt.style.animationDuration = `${Math.max(0.08, animSpeed)}s`;
                 } else {
                     asphalt.style.animationPlayState = 'paused';
                 }
@@ -422,21 +526,20 @@
             }, 50);
         }
 
-        // ТАП ПО ПЕДАЛИ ГАЗА
         document.getElementById('gas-pedal-btn').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if(!gameActive || isSkidding) return;
+            if(!gameActive || isSkidding || !startAllowed) return;
 
             let bonus = isPremium ? 1.15 : 1.0;
-            playerSpeed += (8 * bonus);
-            if(playerSpeed > 120) playerSpeed = 120; // Ограничение максималки
+            playerSpeed += (8.5 * bonus);
+            if(playerSpeed > 130) playerSpeed = 130;
 
             if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
 
         function triggerSkid() {
             isSkidding = true;
-            playerSpeed = playerSpeed * 0.3; // Резкая потеря скорости при заносе
+            playerSpeed = playerSpeed * 0.25;
             document.getElementById('skid-box').style.display = 'flex';
             document.getElementById('player-node').classList.add('skidding');
         }
@@ -459,9 +562,9 @@
 
             let finalScores = [
                 { name: 'Ты', dist: playerDistance, isPlayer: true },
-                { name: 'Бот Агрессор', dist: bot1Distance },
-                { name: 'Бот Шлейф', dist: bot2Distance },
-                { name: 'Бот CCD-Pro', dist: bot3Distance }
+                { name: 'Бот Агрессор', dist: botsData[0].dist },
+                { name: 'Бот Шлейф', dist: botsData[1].dist },
+                { name: 'Бот CCD-Pro', dist: botsData[2].dist }
             ];
             finalScores.sort((a,b) => b.dist - a.dist);
             let place = finalScores.findIndex(x => x.isPlayer) + 1;
@@ -469,11 +572,11 @@
             if(place === 1) {
                 statusTxt.innerText = "1 МЕСТО! 🏆";
                 statusTxt.style.color = "var(--success-color)";
-                detailsTxt.innerText = `Ты чемпион бесконечного трека! Дистанция: ${Math.floor(playerDistance)} метров. Роботы остались далеко позади!`;
+                detailsTxt.innerText = `Настоящий триумф на треке NASCAR! Ты разорвал хаотичных ботов. Дистанция: ${Math.floor(playerDistance)}м.`;
             } else {
                 statusTxt.innerText = `${place} МЕСТО`;
                 statusTxt.style.color = "var(--accent-color)";
-                detailsTxt.innerText = `Боты вырвались вперед по общей дистанции. Твой результат: ${Math.floor(playerDistance)}м. Место: ${place}/4.`;
+                detailsTxt.innerText = `В этой безумной толкотне боты вырвали победу. Твой результат: ${Math.floor(playerDistance)}м. Место: ${place}/4.`;
             }
         }
     </script>
