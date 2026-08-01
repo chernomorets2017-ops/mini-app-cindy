@@ -112,6 +112,14 @@ app.post('/api/create-invoice', async (req, res) => {
     const { priceRub, coinsAmount } = req.body;
     if (!priceRub || !coinsAmount) return res.status(400).json({ error: 'missing price/coins' });
 
+    // Telegram/провайдеры (в т.ч. ЮKassa) отклоняют слишком маленькие суммы —
+    // обычно порог около 100 RUB для live-провайдера. Проверяем заранее,
+    // чтобы не получать невнятную ошибку из Bot API.
+    const MIN_PRICE_RUB = 100;
+    if (priceRub < MIN_PRICE_RUB) {
+        return res.status(400).json({ error: `Минимальная сумма платежа — ${MIN_PRICE_RUB} ₽` });
+    }
+
     const payload = `pack_${coinsAmount}_${user.id}_${Date.now()}`;
     pendingInvoices.set(payload, { userId: user.id, coinsAmount });
 
