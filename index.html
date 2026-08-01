@@ -3,72 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CCD RACE - NEON EDITION</title>
+    <title>CCD RACE - WHITE NEON EDITION</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ===================================================================
-           ТЕМА: черные панели, красные акценты, неон, желтый для скорости.
+           ТЕМА: белый фон, красные акценты, лёгкое свечение только на
+           акцентных элементах. Игровой экран (приборная панель/трасса)
+           намеренно остаётся тёмным — так гоночный HUD читается лучше и не
+           теряется на белом фоне, как в настоящих приборных панелях.
            Классы и разметка сохранены — переработана только визуальная часть.
         =================================================================== */
         :root {
-            --bg-color: #0a0b0f;
-            --bg-color-2: #14161d;
-            --surface-color: #16181f;
-            --surface-color-2: #1c1f28;
+            --bg-color: #f4f6f9;
+            --bg-color-2: #ffffff;
+            --surface-color: #ffffff;
+            --surface-color-2: #fbfbfd;
             --accent-color: #ff1744;
-            --accent-color-dark: #b0102f;
-            --speed-color: #ffd600;
-            --text-color: #f2f3f5;
-            --text-muted: #8a8f9c;
-            --success-color: #00e676;
-            --border-color: #2a2d38;
-            --neon-glow: 0 0 12px rgba(255,23,68,0.65), 0 0 28px rgba(255,23,68,0.25);
-            --neon-glow-yellow: 0 0 10px rgba(255,214,0,0.55), 0 0 22px rgba(255,214,0,0.2);
-            --neon-glow-green: 0 0 10px rgba(0,230,118,0.55);
+            --accent-color-dark: #c8102e;
+            --speed-color: #f57c00;
+            --text-color: #1a1a1a;
+            --text-muted: #70747e;
+            --success-color: #2e9e52;
+            --border-color: #e3e5ea;
+            --neon-glow: 0 0 10px rgba(255,23,68,0.30), 0 0 22px rgba(255,23,68,0.12);
+            --neon-glow-yellow: 0 0 8px rgba(245,124,0,0.30), 0 0 16px rgba(245,124,0,0.12);
+            --neon-glow-green: 0 0 8px rgba(46,158,82,0.30);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-user-select: none; user-select: none; }
         body {
-            background: radial-gradient(circle at 50% -10%, #1c1f2b 0%, var(--bg-color) 55%);
+            background: var(--bg-color);
             color: var(--text-color); overflow: hidden; height: 100vh; display: flex; flex-direction: column;
         }
 
         .screen { display: none; flex-direction: column; height: 100vh; width: 100%; padding: 16px; overflow-y: auto; }
         .screen.active { display: flex; }
 
-        h1 { font-size: 26px; text-transform: uppercase; text-align: center; font-style: italic; letter-spacing: 3px; color: #fff; margin-bottom: 4px; text-shadow: var(--neon-glow); }
-        h2 { font-size: 16px; text-transform: uppercase; margin-bottom: 8px; font-style: italic; color: #fff; letter-spacing: 1px; }
+        h1 { font-size: 26px; text-transform: uppercase; text-align: center; font-style: italic; letter-spacing: 3px; color: #111; margin-bottom: 4px; text-shadow: var(--neon-glow); }
+        h2 { font-size: 16px; text-transform: uppercase; margin-bottom: 8px; font-style: italic; color: #111; letter-spacing: 1px; }
         .subtitle { color: var(--text-muted); text-align: center; font-size: 11px; margin-bottom: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
         .status-panel {
             background: linear-gradient(145deg, var(--surface-color-2), var(--surface-color));
             padding: 12px 14px; border-radius: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid var(--border-color); box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color); box-shadow: 0 4px 14px rgba(20,20,30,0.06);
         }
         .balance-box { font-weight: 900; color: var(--speed-color); font-size: 17px; text-shadow: var(--neon-glow-yellow); }
 
         .main-card {
             background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color));
             border: 1px solid var(--border-color); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            margin-bottom: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+            margin-bottom: 12px; box-shadow: 0 8px 20px rgba(20,20,30,0.06);
             position: relative; overflow: hidden;
         }
         .main-card::before {
             content: ''; position: absolute; top: -50%; left: -20%; width: 140%; height: 200%;
-            background: conic-gradient(from 180deg, transparent, rgba(255,23,68,0.06), transparent 30%);
+            background: conic-gradient(from 180deg, transparent, rgba(255,23,68,0.05), transparent 30%);
             animation: rotateGlow 6s linear infinite;
         }
         @keyframes rotateGlow { to { transform: rotate(360deg); } }
-        .car-render-zone { width: 74px; height: 74px; display: flex; align-items: center; justify-content: center; font-size: 52px; background-position: center; background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6)); z-index: 1; }
+        .car-render-zone { width: 74px; height: 74px; display: flex; align-items: center; justify-content: center; font-size: 52px; background-position: center; background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 4px 6px rgba(20,20,30,0.15)); z-index: 1; }
         .car-name { font-weight: 800; letter-spacing: 0.5px; z-index: 1; margin-top: 4px; }
 
         .leaderboard-box {
             background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color));
             border: 1px solid var(--border-color); border-radius: 16px; padding: 12px; margin-top: 8px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+            box-shadow: 0 6px 16px rgba(20,20,30,0.06);
         }
-        .leader-row { display: flex; justify-content: space-between; padding: 9px 6px; border-bottom: 1px solid var(--border-color); font-size: 13px; color: #cfd2da; }
+        .leader-row { display: flex; justify-content: space-between; padding: 9px 6px; border-bottom: 1px solid var(--border-color); font-size: 13px; color: #333; }
         .leader-row:last-child { border-bottom: none; }
-        .leader-row.player-highlight { font-weight: 800; color: var(--accent-color); text-shadow: 0 0 8px rgba(255,23,68,0.4); }
+        .leader-row.player-highlight { font-weight: 800; color: var(--accent-color); }
 
         .sub-alert-box {
             background: linear-gradient(135deg, rgba(255,214,0,0.12), rgba(255,214,0,0.04));
@@ -83,7 +86,7 @@
             text-align: center; transition: transform 0.05s;
         }
         .btn:active { transform: translateY(2px); }
-        .btn-secondary { background: linear-gradient(180deg, #2a2d38, #1c1f28); color: #cfd2da; border: 1px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .btn-secondary { background: linear-gradient(180deg, #f1f2f5, #e6e8ec); color: #333; border: 1px solid var(--border-color); box-shadow: none; }
         .btn-friend { background: linear-gradient(180deg, #8a5cff, #6a3dd6); box-shadow: 0 6px 16px rgba(124,77,255,0.35), inset 0 1px 0 rgba(255,255,255,0.2); color: white; }
         .btn-bot { background: linear-gradient(180deg, #00d4e0, #009aa8); box-shadow: 0 6px 16px rgba(0,172,193,0.35), inset 0 1px 0 rgba(255,255,255,0.2); color: white; }
         .btn-donate { background: linear-gradient(180deg, #34e07a, #1ea855); font-size: 12px; padding: 9px 14px; border-radius: 10px; color: #06210f; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(30,168,85,0.35); }
@@ -93,12 +96,12 @@
             position: absolute; top: 16px; right: 16px; width: 38px; height: 38px; border-radius: 50%;
             background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color)); border: 1px solid var(--border-color);
             display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; z-index: 50;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 10px rgba(20,20,30,0.08);
         }
 
         /* МОДАЛЬНОЕ ОКНО ДОНАТА — реальный платеж через Bot API sendInvoice (см. server.js) */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; }
-        .modal-card { background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color)); border: 1px solid var(--border-color); border-radius: 24px; width: 100%; max-width: 340px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.6), var(--neon-glow); }
+        .modal-card { background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color)); border: 1px solid var(--border-color); border-radius: 24px; width: 100%; max-width: 340px; padding: 20px; box-shadow: 0 20px 40px rgba(20,20,30,0.18), var(--neon-glow); }
         .tariff-row { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .tariff-row:active { border-color: var(--accent-color); }
         .tariff-info { display: flex; flex-direction: column; text-align: left; }
@@ -106,16 +109,16 @@
         .tariff-price { font-size: 12px; color: var(--text-muted); }
 
         /* КОМНАТА ЛОББИ ДО 10 ЧЕЛОВЕК */
-        .room-container { background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color)); border: 1px solid var(--border-color); border-radius: 20px; padding: 16px; width: 100%; margin: 12px 0; max-height: 280px; overflow-y: auto; box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
-        .player-badge { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; background: var(--surface-color); border-radius: 10px; margin-bottom: 6px; border: 1px solid var(--border-color); font-size: 13px; font-weight: 700; color: #cfd2da; }
-        .player-badge.host { border-color: var(--speed-color); box-shadow: 0 0 0 1px rgba(255,214,0,0.15); }
-        .player-badge.ready { border-color: var(--success-color); box-shadow: 0 0 0 1px rgba(0,230,118,0.15); }
+        .room-container { background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color)); border: 1px solid var(--border-color); border-radius: 20px; padding: 16px; width: 100%; margin: 12px 0; max-height: 280px; overflow-y: auto; box-shadow: 0 6px 16px rgba(20,20,30,0.06); }
+        .player-badge { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; background: #f8f9fb; border-radius: 10px; margin-bottom: 6px; border: 1px solid var(--border-color); font-size: 13px; font-weight: 700; color: #333; }
+        .player-badge.host { border-color: var(--speed-color); box-shadow: 0 0 0 1px rgba(245,124,0,0.15); }
+        .player-badge.ready { border-color: var(--success-color); box-shadow: 0 0 0 1px rgba(46,158,82,0.15); }
         .player-badge .status-pill { font-size: 10px; padding: 3px 8px; border-radius: 20px; background: var(--border-color); color: var(--text-muted); }
-        .player-badge.ready .status-pill { background: rgba(0,230,118,0.15); color: var(--success-color); }
-        .room-code { font-family: monospace; font-weight: 900; letter-spacing: 2px; color: var(--speed-color); text-shadow: var(--neon-glow-yellow); }
+        .player-badge.ready .status-pill { background: rgba(46,158,82,0.12); color: var(--success-color); }
+        .room-code { font-family: monospace; font-weight: 900; letter-spacing: 2px; color: var(--speed-color); }
         .difficulty-row { display: flex; gap: 8px; margin-bottom: 12px; }
         .diff-chip { flex: 1; text-align: center; padding: 10px 4px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--surface-color); font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); cursor: pointer; }
-        .diff-chip.active { border-color: var(--accent-color); color: #fff; background: linear-gradient(180deg, rgba(255,23,68,0.25), rgba(255,23,68,0.05)); box-shadow: var(--neon-glow); }
+        .diff-chip.active { border-color: var(--accent-color); color: var(--accent-color); background: linear-gradient(180deg, rgba(255,23,68,0.10), rgba(255,23,68,0.02)); box-shadow: var(--neon-glow); }
 
         /* ИГРОВОЙ ЭКРАН */
         #screen-game { padding: 0; height: 100vh; display: none; flex-direction: column; background: #05060a; }
@@ -220,7 +223,7 @@
         .huge-gas-pedal.disabled { background: #16181f; opacity: 0.4; cursor: not-allowed; border-color: #23262f; }
 
         .car-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
-        .car-card { background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color)); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 6px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 3px 8px rgba(0,0,0,0.35); }
+        .car-card { background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color)); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 6px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 3px 8px rgba(20,20,30,0.06); }
         .car-card.active-selection { border-color: var(--accent-color); box-shadow: var(--neon-glow); }
 
         /* Результаты */
@@ -372,7 +375,7 @@
     <div id="screen-results" class="screen" style="justify-content:center; align-items:center; text-align:center;">
         <div class="result-medal" id="res-medal">🏁</div>
         <h1 id="res-rank" style="font-size:32px; color:var(--accent-color);">ЗАЕЗД ОКОНЧЕН</h1>
-        <p id="res-desc" style="margin: 16px 0; font-weight:bold; color:#cfd2da;"></p>
+        <p id="res-desc" style="margin: 16px 0; font-weight:bold; color:#444;"></p>
         <h2 id="res-reward" style="color:var(--speed-color); margin-bottom:20px; text-shadow:var(--neon-glow-yellow);">+0 монеток</h2>
         <button class="btn" onclick="switchScreen('screen-menu')">В меню</button>
     </div>
