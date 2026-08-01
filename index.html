@@ -3,93 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CCD RACE - WHITE EDITION</title>
+    <title>CCD RACE - NEON EDITION</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* ===================================================================
+           ТЕМА: черные панели, красные акценты, неон, желтый для скорости.
+           Классы и разметка сохранены — переработана только визуальная часть.
+        =================================================================== */
         :root {
-            --bg-color: #f4f6f9;
-            --surface-color: #ffffff;
-            --accent-color: #e53935;
-            --text-color: #1a1a1a;
-            --text-muted: #666666;
-            --success-color: #2e7d32;
-            --border-color: #dcdcdc;
-            --neon-glow: 0 0 15px rgba(229, 57, 53, 0.4);
+            --bg-color: #0a0b0f;
+            --bg-color-2: #14161d;
+            --surface-color: #16181f;
+            --surface-color-2: #1c1f28;
+            --accent-color: #ff1744;
+            --accent-color-dark: #b0102f;
+            --speed-color: #ffd600;
+            --text-color: #f2f3f5;
+            --text-muted: #8a8f9c;
+            --success-color: #00e676;
+            --border-color: #2a2d38;
+            --neon-glow: 0 0 12px rgba(255,23,68,0.65), 0 0 28px rgba(255,23,68,0.25);
+            --neon-glow-yellow: 0 0 10px rgba(255,214,0,0.55), 0 0 22px rgba(255,214,0,0.2);
+            --neon-glow-green: 0 0 10px rgba(0,230,118,0.55);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-user-select: none; user-select: none; }
-        body { background-color: var(--bg-color); color: var(--text-color); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-user-select: none; user-select: none; }
+        body {
+            background: radial-gradient(circle at 50% -10%, #1c1f2b 0%, var(--bg-color) 55%);
+            color: var(--text-color); overflow: hidden; height: 100vh; display: flex; flex-direction: column;
+        }
+
         .screen { display: none; flex-direction: column; height: 100vh; width: 100%; padding: 16px; overflow-y: auto; }
         .screen.active { display: flex; }
-        
-        h1 { font-size: 24px; text-transform: uppercase; text-align: center; font-style: italic; letter-spacing: 2px; color: #111; margin-bottom: 4px; text-shadow: var(--neon-glow); }
-        h2 { font-size: 16px; text-transform: uppercase; margin-bottom: 8px; font-style: italic; color: #111; }
-        .subtitle { color: var(--text-muted); text-align: center; font-size: 11px; margin-bottom: 12px; font-weight: bold; text-transform: uppercase; }
-        
-        .status-panel { background: var(--surface-color); padding: 12px; border-radius: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .balance-box { font-weight: 900; color: #f57c00; font-size: 16px; }
 
-        .main-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .car-render-zone { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; font-size: 50px; background-position: center; background-size: contain; background-repeat: no-repeat; }
+        h1 { font-size: 26px; text-transform: uppercase; text-align: center; font-style: italic; letter-spacing: 3px; color: #fff; margin-bottom: 4px; text-shadow: var(--neon-glow); }
+        h2 { font-size: 16px; text-transform: uppercase; margin-bottom: 8px; font-style: italic; color: #fff; letter-spacing: 1px; }
+        .subtitle { color: var(--text-muted); text-align: center; font-size: 11px; margin-bottom: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
-        .leaderboard-box { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 16px; padding: 12px; margin-top: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .leader-row { display: flex; justify-content: space-between; padding: 8px 4px; border-bottom: 1px solid var(--border-color); font-size: 13px; color: #333; }
-        .leader-row.player-highlight { font-weight: bold; color: var(--accent-color); }
+        .status-panel {
+            background: linear-gradient(145deg, var(--surface-color-2), var(--surface-color));
+            padding: 12px 14px; border-radius: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid var(--border-color); box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        .balance-box { font-weight: 900; color: var(--speed-color); font-size: 17px; text-shadow: var(--neon-glow-yellow); }
 
-        .sub-alert-box { background: rgba(245, 124, 0, 0.1); border: 1px solid #f57c00; color: #e65100; padding: 12px; border-radius: 14px; margin-bottom: 12px; text-align: center; font-size: 13px; font-weight: bold; }
+        .main-card {
+            background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color));
+            border: 1px solid var(--border-color); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            margin-bottom: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+            position: relative; overflow: hidden;
+        }
+        .main-card::before {
+            content: ''; position: absolute; top: -50%; left: -20%; width: 140%; height: 200%;
+            background: conic-gradient(from 180deg, transparent, rgba(255,23,68,0.06), transparent 30%);
+            animation: rotateGlow 6s linear infinite;
+        }
+        @keyframes rotateGlow { to { transform: rotate(360deg); } }
+        .car-render-zone { width: 74px; height: 74px; display: flex; align-items: center; justify-content: center; font-size: 52px; background-position: center; background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6)); z-index: 1; }
+        .car-name { font-weight: 800; letter-spacing: 0.5px; z-index: 1; margin-top: 4px; }
 
-        .btn { background: var(--accent-color); color: white; border: none; padding: 14px; border-radius: 14px; font-size: 14px; font-weight: 700; text-transform: uppercase; cursor: pointer; width: 100%; margin-bottom: 8px; box-shadow: 0 4px 10px rgba(229,57,53,0.3); text-align: center; }
-        .btn-secondary { background: #e0e0e0; color: #333; border: 1px solid var(--border-color); box-shadow: none; }
-        .btn-friend { background: linear-gradient(135deg, #7c4dff, #512da8); box-shadow: 0 4px 10px rgba(124,77,255,0.3); color: white; }
-        .btn-bot { background: linear-gradient(135deg, #00acc1, #00838f); box-shadow: 0 4px 10px rgba(0,172,193,0.3); color: white; }
-        .btn-donate { background: linear-gradient(135deg, #43a047, #2e7d32); font-size: 12px; padding: 8px 12px; border-radius: 10px; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .leaderboard-box {
+            background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color));
+            border: 1px solid var(--border-color); border-radius: 16px; padding: 12px; margin-top: 8px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+        }
+        .leader-row { display: flex; justify-content: space-between; padding: 9px 6px; border-bottom: 1px solid var(--border-color); font-size: 13px; color: #cfd2da; }
+        .leader-row:last-child { border-bottom: none; }
+        .leader-row.player-highlight { font-weight: 800; color: var(--accent-color); text-shadow: 0 0 8px rgba(255,23,68,0.4); }
 
-        /* МОДАЛЬНОЕ ОКНО ДОНАТА (ИСПРАВЛЕНА ОПЛАТА ЧЕРЕЗ TELEGRAM INVOICE БЕЗ ОШИБОК ССЫЛОК) */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; }
-        .modal-card { background: #ffffff; border: 1px solid var(--border-color); border-radius: 24px; width: 100%; max-width: 340px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-        .tariff-row { background: #f8f9fa; border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .sub-alert-box {
+            background: linear-gradient(135deg, rgba(255,214,0,0.12), rgba(255,214,0,0.04));
+            border: 1px solid var(--speed-color); color: var(--speed-color); padding: 12px; border-radius: 14px; margin-bottom: 12px; text-align: center; font-size: 13px; font-weight: 700;
+            box-shadow: var(--neon-glow-yellow);
+        }
+
+        .btn {
+            background: linear-gradient(180deg, #ff2e55, var(--accent-color) 60%, var(--accent-color-dark));
+            color: white; border: 1px solid rgba(255,255,255,0.15); padding: 15px; border-radius: 14px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+            cursor: pointer; width: 100%; margin-bottom: 8px; box-shadow: 0 6px 16px rgba(255,23,68,0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+            text-align: center; transition: transform 0.05s;
+        }
+        .btn:active { transform: translateY(2px); }
+        .btn-secondary { background: linear-gradient(180deg, #2a2d38, #1c1f28); color: #cfd2da; border: 1px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .btn-friend { background: linear-gradient(180deg, #8a5cff, #6a3dd6); box-shadow: 0 6px 16px rgba(124,77,255,0.35), inset 0 1px 0 rgba(255,255,255,0.2); color: white; }
+        .btn-bot { background: linear-gradient(180deg, #00d4e0, #009aa8); box-shadow: 0 6px 16px rgba(0,172,193,0.35), inset 0 1px 0 rgba(255,255,255,0.2); color: white; }
+        .btn-donate { background: linear-gradient(180deg, #34e07a, #1ea855); font-size: 12px; padding: 9px 14px; border-radius: 10px; color: #06210f; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(30,168,85,0.35); }
+        .btn:disabled, .btn.disabled { opacity: 0.4; filter: grayscale(0.6); pointer-events: none; }
+
+        .sound-toggle {
+            position: absolute; top: 16px; right: 16px; width: 38px; height: 38px; border-radius: 50%;
+            background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color)); border: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; z-index: 50;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        /* МОДАЛЬНОЕ ОКНО ДОНАТА — реальный платеж через Bot API sendInvoice (см. server.js) */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .modal-card { background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color)); border: 1px solid var(--border-color); border-radius: 24px; width: 100%; max-width: 340px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.6), var(--neon-glow); }
+        .tariff-row { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .tariff-row:active { border-color: var(--accent-color); }
         .tariff-info { display: flex; flex-direction: column; text-align: left; }
-        .tariff-coins { font-weight: 900; color: #f57c00; font-size: 16px; }
+        .tariff-coins { font-weight: 900; color: var(--speed-color); font-size: 16px; }
         .tariff-price { font-size: 12px; color: var(--text-muted); }
 
         /* КОМНАТА ЛОББИ ДО 10 ЧЕЛОВЕК */
-        .room-container { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 20px; padding: 16px; width: 100%; margin: 12px 0; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .player-badge { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8f9fa; border-radius: 10px; margin-bottom: 6px; border: 1px solid var(--border-color); font-size: 13px; font-weight: bold; color: #333; }
-        .player-badge.host { border-color: #f57c00; background: rgba(245,124,0,0.05); }
-        .player-badge.ready { border-color: var(--success-color); background: rgba(46,125,50,0.05); }
+        .room-container { background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color)); border: 1px solid var(--border-color); border-radius: 20px; padding: 16px; width: 100%; margin: 12px 0; max-height: 280px; overflow-y: auto; box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
+        .player-badge { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; background: var(--surface-color); border-radius: 10px; margin-bottom: 6px; border: 1px solid var(--border-color); font-size: 13px; font-weight: 700; color: #cfd2da; }
+        .player-badge.host { border-color: var(--speed-color); box-shadow: 0 0 0 1px rgba(255,214,0,0.15); }
+        .player-badge.ready { border-color: var(--success-color); box-shadow: 0 0 0 1px rgba(0,230,118,0.15); }
+        .player-badge .status-pill { font-size: 10px; padding: 3px 8px; border-radius: 20px; background: var(--border-color); color: var(--text-muted); }
+        .player-badge.ready .status-pill { background: rgba(0,230,118,0.15); color: var(--success-color); }
+        .room-code { font-family: monospace; font-weight: 900; letter-spacing: 2px; color: var(--speed-color); text-shadow: var(--neon-glow-yellow); }
+        .difficulty-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .diff-chip { flex: 1; text-align: center; padding: 10px 4px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--surface-color); font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); cursor: pointer; }
+        .diff-chip.active { border-color: var(--accent-color); color: #fff; background: linear-gradient(180deg, rgba(255,23,68,0.25), rgba(255,23,68,0.05)); box-shadow: var(--neon-glow); }
 
         /* ИГРОВОЙ ЭКРАН */
-        #screen-game { padding: 0; height: 100vh; display: none; flex-direction: column; background: #ffffff; }
+        #screen-game { padding: 0; height: 100vh; display: none; flex-direction: column; background: #05060a; }
         #screen-game.active { display: flex; }
 
         .horizontal-track {
             height: 50%; position: relative; overflow: hidden;
-            background: #f0f2f5;
+            background: linear-gradient(180deg, #1a1c24, #0d0e13);
             border-top: 4px solid var(--accent-color); border-bottom: 4px solid var(--accent-color);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.6), var(--neon-glow);
         }
-        
-        .track-shoulder-top { position: absolute; top: 0; left: 0; width: 100%; height: 20%; background: #e4e7eb; border-bottom: 2px dashed #cbd5e1; z-index: 2; }
-        .track-shoulder-bottom { position: absolute; bottom: 0; left: 0; width: 100%; height: 20%; background: #e4e7eb; border-top: 2px dashed #cbd5e1; z-index: 2; }
-        
+
+        .track-shoulder-top { position: absolute; top: 0; left: 0; width: 100%; height: 20%; background: repeating-linear-gradient(90deg, #23262f, #23262f 14px, #ff1744 14px, #ff1744 20px); opacity: 0.35; border-bottom: 2px dashed #3a3d4a; z-index: 2; }
+        .track-shoulder-bottom { position: absolute; bottom: 0; left: 0; width: 100%; height: 20%; background: repeating-linear-gradient(90deg, #23262f, #23262f 14px, #ff1744 14px, #ff1744 20px); opacity: 0.35; border-top: 2px dashed #3a3d4a; z-index: 2; }
+
         .road-moving-canvas {
             position: absolute; top: 20%; height: 60%; width: 200%; left: 0;
-            background-image: linear-gradient(to right, #ffffff 40%, transparent 40%);
+            background-image: linear-gradient(to right, #ffd60022 40%, transparent 40%);
             background-size: 50px 6px; background-repeat: repeat-x; background-position: center;
         }
 
         .race-field-horiz { position: absolute; top: 20%; height: 60%; left: 0; right: 0; z-index: 5; }
-        
+
         .racer-node-horiz {
             position: absolute; width: 50px; height: 35px; display: flex; flex-direction: column; align-items: center; justify-content: center;
             left: 20px; transition: left 0.1s linear, top 0.2s ease;
         }
-        .racer-skin-slot-horiz { 
-            width: 36px; height: 36px; font-size: 30px; display: flex; align-items: center; justify-content: center; 
+        .racer-skin-slot-horiz {
+            width: 38px; height: 38px; font-size: 30px; display: flex; align-items: center; justify-content: center;
             background-position: center; background-size: contain; background-repeat: no-repeat; transform: scaleX(-1);
+            filter: drop-shadow(0 0 6px rgba(255,23,68,0.5));
         }
-        .racer-tag-horiz { font-size: 8px; background: rgba(0,0,0,0.75); color: #fff; padding: 1px 4px; border-radius: 3px; font-weight: bold; white-space: nowrap; margin-top: -2px; }
-        .racer-node-horiz.me .racer-tag-horiz { background: var(--accent-color); }
+        .racer-tag-horiz { font-size: 8px; background: rgba(0,0,0,0.8); color: #fff; padding: 2px 5px; border-radius: 4px; font-weight: 800; white-space: nowrap; margin-top: -2px; border: 1px solid rgba(255,255,255,0.1); }
+        .racer-node-horiz.me .racer-tag-horiz { background: var(--accent-color); box-shadow: var(--neon-glow); }
+        .racer-node-horiz.bot .racer-tag-horiz { background: #00838f; }
 
         @keyframes driftShakeHoriz {
             0% { transform: translateY(0px) rotate(3deg); }
@@ -100,71 +161,75 @@
 
         .drift-alert-btn {
             position: absolute; top: 15%; left: 50%; transform: translate(-50%, -50%);
-            background: #f57c00; color: white; padding: 10px 20px; border-radius: 30px;
-            font-weight: 900; font-size: 13px; border: 2px solid white; box-shadow: 0 4px 12px rgba(245,124,0,0.4);
+            background: linear-gradient(180deg, #ffd600, #f5a623); color: #241900; padding: 10px 22px; border-radius: 30px;
+            font-weight: 900; font-size: 13px; border: 2px solid #fff; box-shadow: var(--neon-glow-yellow);
             z-index: 999; display: none; text-transform: uppercase;
         }
 
         .traffic-light-horiz {
             position: absolute; top: 25%; left: 20px;
-            background: #222; padding: 4px 8px; border-radius: 10px; display: flex; gap: 6px; border: 2px solid #444; z-index: 100;
+            background: #0a0a0d; padding: 5px 9px; border-radius: 12px; display: flex; gap: 6px; border: 2px solid #333; z-index: 100;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .light-bulb { width: 10px; height: 10px; border-radius: 50%; background: #444; }
-        .light-bulb.red.active { background: #e53935; box-shadow: 0 0 8px #e53935; }
-        .light-bulb.yellow.active { background: #fbc02d; box-shadow: 0 0 8px #fbc02d; }
-        .light-bulb.green.active { background: #43a047; box-shadow: 0 0 8px #43a047; }
+        .light-bulb { width: 11px; height: 11px; border-radius: 50%; background: #2a2a2a; }
+        .light-bulb.red.active { background: #ff1744; box-shadow: 0 0 10px #ff1744; }
+        .light-bulb.yellow.active { background: #ffd600; box-shadow: 0 0 10px #ffd600; }
+        .light-bulb.green.active { background: #00e676; box-shadow: 0 0 10px #00e676; }
 
         .bottom-control-interface {
-            height: 50%; background: #ffffff; border-top: 4px solid var(--border-color);
-            box-shadow: inset 0 4px 10px rgba(0,0,0,0.03);
+            height: 50%; background: linear-gradient(180deg, #0f1015, #05060a); border-top: 4px solid var(--border-color);
+            box-shadow: inset 0 6px 16px rgba(0,0,0,0.5);
             display: flex; padding: 20px; gap: 16px; position: relative;
             align-items: center; justify-content: space-between;
         }
 
         .gauge-cluster {
-            width: 120px; height: 120px; border-radius: 50%;
-            background: #f8f9fa; border: 5px solid #dcdcdc;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05), 0 4px 8px rgba(0,0,0,0.05);
+            width: 122px; height: 122px; border-radius: 50%;
+            background: radial-gradient(circle at 40% 35%, #23262f, #101116 80%); border: 5px solid #2a2d38;
+            box-shadow: inset 0 0 16px rgba(0,0,0,0.6), 0 6px 14px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,23,68,0.15);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; border-left-color: var(--accent-color);
         }
-        .gauge-label { font-size: 9px; color: var(--text-muted); font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
-        .gauge-speed-digital { font-size: 30px; font-weight: 900; color: #111; font-style: italic; }
-        .gauge-unit { font-size: 10px; color: var(--success-color); font-weight: bold; }
+        .gauge-label { font-size: 9px; color: var(--text-muted); font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 2px; }
+        .gauge-speed-digital { font-size: 32px; font-weight: 900; color: var(--speed-color); font-style: italic; text-shadow: var(--neon-glow-yellow); }
+        .gauge-unit { font-size: 10px; color: var(--success-color); font-weight: 800; }
 
         .race-chrono { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-left: 6px; }
-        .chrono-box { background: #111; border: 2px solid #333; padding: 10px; border-radius: 12px; text-align: center; }
-        .chrono-time { font-family: monospace; font-size: 24px; color: #00ff66; font-weight: bold; }
+        .chrono-box { background: #000; border: 2px solid #262a35; padding: 10px; border-radius: 12px; text-align: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+        .chrono-time { font-family: monospace; font-size: 24px; color: #00ff66; font-weight: bold; text-shadow: 0 0 10px rgba(0,255,102,0.6); }
 
         .huge-gas-pedal {
-            width: 90px; height: 140px; 
-            background: linear-gradient(180deg, #f1f3f5 0%, #ced4da 100%);
-            border-radius: 14px; border: 4px solid #adb5bd;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1), inset 0 0 6px rgba(255,255,255,0.8);
+            width: 92px; height: 142px;
+            background: linear-gradient(180deg, #2a2d38 0%, #16181f 100%);
+            border-radius: 14px; border: 4px solid #343844;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5), inset 0 0 8px rgba(255,255,255,0.04);
             display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-            padding-bottom: 20px; color: #495057; font-weight: 900; cursor: pointer;
-            position: relative; border-bottom: 8px solid #adb5bd;
+            padding-bottom: 20px; color: #8a8f9c; font-weight: 900; cursor: pointer;
+            position: relative; border-bottom: 8px solid #343844;
             transition: transform 0.05s, border-bottom-width 0.05s;
         }
         .huge-gas-pedal::after {
-            content: ':::'; font-size: 20px; letter-spacing: 2px; color: #6c757d;
+            content: ':::'; font-size: 20px; letter-spacing: 2px; color: #4a4f5e;
             position: absolute; top: 30%; transform: rotate(90deg);
         }
         .huge-gas-pedal:active:not(.disabled) {
             transform: translateY(4px); border-bottom-width: 4px;
-            background: linear-gradient(180deg, var(--accent-color) 0%, #b71c1c 100%);
-            color: #fff; border-color: #ef9a9a;
+            background: linear-gradient(180deg, var(--accent-color) 0%, var(--accent-color-dark) 100%);
+            color: #fff; border-color: #ff8a9d; box-shadow: var(--neon-glow);
         }
-        .huge-gas-pedal.disabled { background: #e9ecef; opacity: 0.4; cursor: not-allowed; border-color: #dee2e6; }
+        .huge-gas-pedal.disabled { background: #16181f; opacity: 0.4; cursor: not-allowed; border-color: #23262f; }
 
         .car-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
-        .car-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 6px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .car-card.active-selection { border-color: var(--accent-color); background: rgba(229,57,53,0.05); }
+        .car-card { background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color)); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 6px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 3px 8px rgba(0,0,0,0.35); }
+        .car-card.active-selection { border-color: var(--accent-color); box-shadow: var(--neon-glow); }
+
+        /* Результаты */
+        .result-medal { font-size: 54px; margin-bottom: 8px; filter: drop-shadow(0 0 14px rgba(255,214,0,0.6)); }
     </style>
 </head>
 <body>
 
-    <!-- МОДАЛЬНОЕ ОКНО ДОНАТА (ИСПРАВЛЕНА ОПЛАТА ЧЕРЕЗ TELEGRAM INVOICE БЕЗ ОШИБОК ССЫЛОК) -->
+    <!-- МОДАЛЬНОЕ ОКНО ДОНАТА: реальный платеж запускается через backend (Bot API sendInvoice), см. executePurchase() -->
     <div class="modal-overlay" id="donateModal">
         <div class="modal-card">
             <h2 style="text-align:center; margin-bottom:16px;">Магазин Монет 💰</h2>
@@ -189,13 +254,14 @@
     </div>
 
     <!-- ГЛАВНОЕ МЕНЮ -->
-    <div id="screen-menu" class="screen active">
+    <div id="screen-menu" class="screen active" style="position:relative;">
+        <div class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</div>
         <h1>CCD RACE</h1>
         <div class="subtitle">Многопользовательские заезды до 10 человек</div>
 
         <div class="sub-alert-box" id="sub-banner">
             📢 Для участия в гонках нужно подписаться на наш канал!
-            <button class="btn" style="padding: 6px 10px; font-size: 11px; margin-top: 8px; background:#f57c00;" onclick="openChannel()">👉 Подписаться</button>
+            <button class="btn" style="padding: 6px 10px; font-size: 11px; margin-top: 8px;" onclick="openChannel()">👉 Подписаться</button>
             <button class="btn-secondary" style="padding: 4px 8px; font-size: 10px; width:100%; border-radius:8px; margin-top:4px;" onclick="checkSubscriptionReal()">Проверить подписку 🔄</button>
         </div>
 
@@ -212,8 +278,9 @@
             <div class="car-name" id="main-car-name">Сток Городской</div>
         </div>
 
-        <button class="btn btn-friend" onclick="createFriendRoom()">👥 Создать комнату с другом (до 10 чел)</button>
-        <button class="btn btn-bot" onclick="startBotMode()">🤖 Заезд с ботами (Одиночный режим)</button>
+        <button class="btn btn-friend" id="btnCreateFriendRoom" onclick="createFriendRoom()">👥 Создать комнату с другом (до 10 чел)</button>
+        <button class="btn" id="btnJoinPublic" style="background:linear-gradient(180deg,#ff8a3d,#e0601a); box-shadow:0 6px 16px rgba(224,96,26,0.35);" onclick="joinPublicMatch()">🌐 Онлайн на 10 игроков</button>
+        <button class="btn btn-bot" id="btnBotMode" onclick="openBotDifficultyPicker()">🤖 Заезд с ботами (Одиночный режим)</button>
         <button class="btn btn-secondary" onclick="switchScreen('screen-garage')">🚗 Гараж автовинилов</button>
 
         <div class="leaderboard-box">
@@ -222,18 +289,33 @@
         </div>
     </div>
 
-    <!-- ЛОББИ КОМНАТЫ С ДРУЗЬЯМИ (ЧИСТЫЙ МУЛЬТИПЛЕЕР БЕЗ БОТОВ) -->
+    <!-- ВЫБОР СЛОЖНОСТИ БОТОВ -->
+    <div id="screen-bot-difficulty" class="screen">
+        <h1>Выбор сложности</h1>
+        <div class="subtitle">От сложности зависит поведение и скорость ботов</div>
+        <div class="difficulty-row">
+            <div class="diff-chip" data-diff="easy" onclick="pickBotDifficulty('easy')">Легкий</div>
+            <div class="diff-chip active" data-diff="medium" onclick="pickBotDifficulty('medium')">Средний</div>
+            <div class="diff-chip" data-diff="hard" onclick="pickBotDifficulty('hard')">Сложный</div>
+        </div>
+        <button class="btn btn-bot" onclick="startBotMode()">Начать заезд</button>
+        <button class="btn btn-secondary" onclick="switchScreen('screen-menu')">Назад</button>
+    </div>
+
+    <!-- ЛОББИ КОМНАТЫ С ДРУЗЬЯМИ / ПУБЛИЧНЫЙ МАТЧМЕЙКИНГ -->
     <div id="screen-matchmaking" class="screen">
-        <h1>Комната Друзей</h1>
-        <div class="subtitle" id="room-id-display">Ожидание подключения друга по ссылке</div>
-        
+        <h1 id="matchmaking-title">Комната Друзей</h1>
+        <div class="subtitle" id="room-id-display">Подключение к серверу…</div>
+        <div class="subtitle room-code" id="room-code-display" style="display:none;"></div>
+
         <div class="room-container">
             <div style="font-size:12px; font-weight:bold; color:var(--text-muted); margin-bottom:8px;">Игроки в комнате (макс. 10):</div>
             <div id="room-players-list"></div>
         </div>
 
-        <button class="btn" id="start-room-btn" onclick="launchRealRace(false)" style="display:none;">ПОЕХАЛИ С ДРУГОМ! 🚀</button>
-        <button class="btn btn-secondary" onclick="switchScreen('screen-menu')">Выйти в меню</button>
+        <button class="btn btn-secondary" id="ready-toggle-btn" onclick="toggleReady()">Я готов ✅</button>
+        <button class="btn" id="start-room-btn" onclick="hostForceStart()" style="display:none;">ПОЕХАЛИ! 🚀 (все готовы)</button>
+        <button class="btn btn-secondary" onclick="leaveRoom()">Выйти в меню</button>
     </div>
 
     <!-- ГАРАЖ -->
@@ -254,14 +336,14 @@
         <div class="horizontal-track" id="trackEnvironment">
             <div class="track-shoulder-top"></div>
             <div class="track-shoulder-bottom"></div>
-            
+
             <button class="drift-alert-btn" id="driftBtn" onclick="fixDrift()">ВЫРАВНЯТЬ! 🔄</button>
             <div class="traffic-light-horiz" id="trafficLight">
                 <div class="light-bulb red" id="light-red"></div>
                 <div class="light-bulb yellow" id="light-yellow"></div>
                 <div class="light-bulb green" id="light-green"></div>
             </div>
-            
+
             <div class="road-moving-canvas" id="roadBg"></div>
             <div class="race-field-horiz" id="raceField"></div>
         </div>
@@ -288,27 +370,81 @@
 
     <!-- РЕЗУЛЬТАТЫ -->
     <div id="screen-results" class="screen" style="justify-content:center; align-items:center; text-align:center;">
-        <h1 id="res-rank" style="font-size:36px; color:var(--accent-color);">ЗАЕЗД ОКОНЧЕН</h1>
-        <p id="res-desc" style="margin: 16px 0; font-weight:bold; color:#333;"></p>
-        <h2 id="res-reward" style="color:#f57c00; margin-bottom:20px;">+0 монеток</h2>
+        <div class="result-medal" id="res-medal">🏁</div>
+        <h1 id="res-rank" style="font-size:32px; color:var(--accent-color);">ЗАЕЗД ОКОНЧЕН</h1>
+        <p id="res-desc" style="margin: 16px 0; font-weight:bold; color:#cfd2da;"></p>
+        <h2 id="res-reward" style="color:var(--speed-color); margin-bottom:20px; text-shadow:var(--neon-glow-yellow);">+0 монеток</h2>
         <button class="btn" onclick="switchScreen('screen-menu')">В меню</button>
     </div>
 
     <script>
+        /* =====================================================================================
+           КОНФИГ БЭКЕНДА
+           Всё, что помечено "СЕРВЕР", НЕ выполняется на клиенте — сюда подставляются реальные
+           адреса вашего backend (см. прилагаемый server.js). Клиент только вызывает эти API.
+        ===================================================================================== */
+        const API_BASE = "https://your-backend.example.com";      // СЕРВЕР: HTTPS API (Express)
+        const WS_URL    = "wss://your-backend.example.com/ws";    // СЕРВЕР: WebSocket endpoint для комнат/мультиплеера
+        const CHANNEL_URL = "https://t.me/mods_ccd";
+
         const tg = window.Telegram.WebApp;
         tg.ready(); tg.expand();
 
-        const KASSA_TOKEN = "390540012:LIVE:100292";
-        const CHANNEL_URL = "https://t.me/mods_ccd"; // Исправлена ссылка на канал пользователя
+        // ---------------------------------------------------------------------------------
+        // ЗВУК: HTML5 Audio, вкл/выкл, фон меню + отдельный трек гонки
+        // ---------------------------------------------------------------------------------
+        const SFX = {
+            music_menu: new Audio('sounds/menu_theme.mp3'),
+            music_race: new Audio('sounds/race_theme.mp3'),
+            start: new Audio('sounds/start_beep.mp3'),
+            engine: new Audio('sounds/engine_loop.mp3'),
+            accel: new Audio('sounds/accel_tap.mp3'),
+            gearshift: new Audio('sounds/gearshift.mp3'),
+            drift: new Audio('sounds/drift.mp3'),
+            finish: new Audio('sounds/finish.mp3'),
+            win: new Audio('sounds/win.mp3'),
+            lose: new Audio('sounds/lose.mp3'),
+            click: new Audio('sounds/ui_click.mp3'),
+        };
+        SFX.music_menu.loop = true; SFX.music_race.loop = true; SFX.engine.loop = true;
+        let soundOn = localStorage.getItem('ccd_sound_on') !== 'false';
+        function applySoundState() {
+            document.getElementById('soundToggle').innerText = soundOn ? '🔊' : '🔇';
+            Object.values(SFX).forEach(a => a.muted = !soundOn);
+        }
+        function toggleSound() {
+            soundOn = !soundOn;
+            localStorage.setItem('ccd_sound_on', soundOn);
+            applySoundState();
+            if (soundOn) playMenuMusic(); else { SFX.music_menu.pause(); SFX.music_race.pause(); SFX.engine.pause(); }
+        }
+        function safePlay(a) { if (!soundOn) return; try { a.currentTime = 0; a.play().catch(()=>{}); } catch(e){} }
+        function playMenuMusic() { if(!soundOn) return; SFX.music_race.pause(); try { SFX.music_menu.currentTime = 0; SFX.music_menu.play().catch(()=>{}); } catch(e){} }
+        function playRaceMusic() { if(!soundOn) return; SFX.music_menu.pause(); try { SFX.music_race.currentTime = 0; SFX.music_race.play().catch(()=>{}); } catch(e){} }
+        applySoundState();
 
+        // Обертка на все кнопки с классом .btn/.btn-secondary/.btn-donate/.diff-chip — звук клика
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.btn, .btn-secondary, .btn-donate, .diff-chip, .tariff-row')) safePlay(SFX.click);
+        });
+
+        // ---------------------------------------------------------------------------------
+        // СОСТОЯНИЕ ИГРОКА
+        // ---------------------------------------------------------------------------------
         let userCoins = parseInt(localStorage.getItem('ccd_coins')) || 0;
         let ownedCars = JSON.parse(localStorage.getItem('ccd_owned_cars')) || [0];
-        let isSubscribed = localStorage.getItem('ccd_sub_status') === 'true';
+        let isSubscribed = false; // подтверждается ТОЛЬКО сервером, не хранится локально как истина
         let realUsersRating = JSON.parse(localStorage.getItem('ccd_real_rating')) || [];
-        
-        let username = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || "Гонщик_" + Math.floor(Math.random()*1000);
+
+        let username = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || ("Гонщик_" + Math.floor(Math.random()*1000));
+        let userId = tg.initDataUnsafe?.user?.id || null;
         let roomPlayers = [];
         let isBotMode = false;
+        let botDifficulty = 'medium';
+        let myReady = false;
+        let isHost = false;
+        let currentRoomId = null;
+        let currentMode = 'friend'; // 'friend' | 'public'
 
         function refreshLeaderboardUI() {
             let myRecord = realUsersRating.find(u => u.name === username);
@@ -320,7 +456,7 @@
             const listContainer = document.getElementById('leaderboard-list');
             if (listContainer) {
                 listContainer.innerHTML = '';
-                realUsersRating.forEach((user, index) => {
+                realUsersRating.slice(0, 10).forEach((user, index) => {
                     const row = document.createElement('div');
                     row.className = `leader-row ${user.name === username ? 'player-highlight' : ''}`;
                     row.innerHTML = `<span>${index + 1}. ${user.name}</span><span>${user.score} м.</span>`;
@@ -331,8 +467,8 @@
         }
 
         document.getElementById('coin-balance').innerText = userCoins;
-        if (isSubscribed) document.getElementById('sub-banner').style.display = 'none';
         refreshLeaderboardUI();
+        playMenuMusic();
 
         const carsDatabase = [
             { id: 0, icon: '🚗', name: 'Сток Городской', price: 0 },
@@ -366,111 +502,362 @@
         let playerSpeed = 0, playerDistance = 0;
         let gameTicker = null;
         let raceTimeLeft = 30.0;
-        let raceStarted = false; 
+        let raceStarted = false;
         let isInDrift = false;
         let driftChanceCounter = 0;
         let activeRacers = [];
 
         function openChannel() { tg.openTelegramLink(CHANNEL_URL); }
 
-        function checkSubscriptionReal() {
-            isSubscribed = true;
-            localStorage.setItem('ccd_sub_status', 'true');
-            document.getElementById('sub-banner').style.display = 'none';
-            tg.showAlert("Подписка подтверждена!");
+        // ---------------------------------------------------------------------------------
+        // ПОДПИСКА: реальная проверка ТОЛЬКО через backend -> Bot API getChatMember()
+        // Клиент не может сам проверить подписку — Telegram Mini Apps этого не позволяют.
+        // СЕРВЕР должен реализовать: GET/POST /api/check-subscription { initData }
+        //   -> bot.getChatMember(CHANNEL_ID, userId) -> статус member/administrator/creator = true
+        // Ниже — реальный вызов этого эндпоинта (не имитация).
+        // ---------------------------------------------------------------------------------
+        async function checkSubscriptionReal() {
+            const banner = document.getElementById('sub-banner');
+            try {
+                const resp = await fetch(`${API_BASE}/api/check-subscription`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ initData: tg.initData })
+                });
+                if (!resp.ok) throw new Error('bad status ' + resp.status);
+                const data = await resp.json(); // { subscribed: true/false }
+                isSubscribed = !!data.subscribed;
+                if (isSubscribed) {
+                    banner.style.display = 'none';
+                    tg.showAlert("Подписка подтверждена!");
+                    fetchBalance();
+                } else {
+                    tg.showAlert("Подписка не найдена. Подпишись на канал и попробуй снова.");
+                }
+            } catch (err) {
+                console.error('subscription check failed', err);
+                tg.showAlert("Не удалось проверить подписку. Backend недоступен — проверьте API_BASE в коде клиента.");
+            }
+        }
+
+        function guardSubscribed() {
+            if (!isSubscribed) {
+                tg.showAlert("Подпишись на канал и нажми «Проверить подписку», чтобы играть!");
+                document.getElementById('sub-banner').scrollIntoView({behavior:'smooth'});
+                return false;
+            }
+            return true;
         }
 
         function openDonateModal() { document.getElementById('donateModal').style.display = 'flex'; }
         function closeDonateModal() { document.getElementById('donateModal').style.display = 'none'; }
 
-        // ИСПРАВЛЕНА ОПЛАТА ЧЕРЕЗ TELEGRAM INVOICE БЕЗ ОШИБОК ССЫЛОК (КОРРЕКТНЫЙ ВЫЗОВ API)
-        function executePurchase(priceRub, coinsAmount) {
+        // ---------------------------------------------------------------------------------
+        // ОПЛАТА: правильная архитектура Telegram Payments.
+        // Mini App -> Backend (/api/create-invoice) -> Bot API sendInvoice() -> Telegram Invoice
+        // -> pre_checkout_query (backend answerPreCheckoutQuery) -> successful_payment (backend)
+        // -> backend начисляет монеты в своей БД и возвращает актуальный баланс.
+        // Клиент НЕ начисляет монеты сам — только запрашивает актуальный баланс после оплаты.
+        // ---------------------------------------------------------------------------------
+        async function executePurchase(priceRub, coinsAmount) {
             closeDonateModal();
-            // Используем стандартный встроенный tg.openInvoice или безопасный fallback через системное уведомление
-            if (tg.openInvoice) {
-                // Создаем инвойс через API Telegram WebApp с правильным провайдер токеном
-                let payloadData = {
-                    title: `${coinsAmount} Монеток CCD RACE`,
-                    description: `Покупка игровых монет для тюнинга тачки`,
-                    payload: `pack_${coinsAmount}_${Date.now()}`,
-                    provider_token: KASSA_TOKEN,
-                    currency: "RUB",
-                    prices: [{ label: `${coinsAmount} Монет`, amount: priceRub * 100 }]
-                };
-                
-                // Пробуем вызвать инвойс
-                try {
-                    tg.openInvoice(payloadData, function(status) {
-                        if (status === 'paid') {
-                            updateCoins(coinsAmount);
-                            tg.showAlert(`Успешно! Зачислено ${coinsAmount} монет.`);
-                        }
-                    });
-                } catch(e) {
-                    // Fallback для прямой симуляции успешного платежа при тест-токенах
-                    updateCoins(coinsAmount);
-                    tg.showAlert(`Платёж успешен! Начислено: +${coinsAmount} монет.`);
-                }
-            } else {
-                updateCoins(coinsAmount);
-                tg.showAlert(`Баланс пополнен на ${coinsAmount} монет!`);
+            if (!isSubscribed) { tg.showAlert("Сначала подтверди подписку на канал."); return; }
+            try {
+                // СЕРВЕР: создает счет через bot.sendInvoice(...) и возвращает invoice_link (Telegram Bot API createInvoiceLink)
+                const resp = await fetch(`${API_BASE}/api/create-invoice`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ initData: tg.initData, priceRub, coinsAmount })
+                });
+                if (!resp.ok) throw new Error('invoice create failed ' + resp.status);
+                const { invoiceLink } = await resp.json();
+
+                tg.openInvoice(invoiceLink, async function (status) {
+                    if (status === 'paid') {
+                        // Оплата подтверждена клиентом Telegram. Реальное начисление уже произошло
+                        // на сервере в обработчике successful_payment. Здесь только синхронизируем баланс.
+                        await fetchBalance();
+                        tg.showAlert(`Оплата прошла! Баланс обновлен.`);
+                    } else if (status === 'failed') {
+                        tg.showAlert("Платеж не прошел. Попробуйте еще раз.");
+                    }
+                });
+            } catch (err) {
+                console.error('purchase failed', err);
+                tg.showAlert("Не удалось создать счет. Проверьте, что backend с Bot API запущен (см. server.js).");
             }
         }
 
-        function updateCoins(amount) {
+        // Баланс — источник истины ТОЛЬКО сервер (иначе легко подделать через localStorage)
+        async function fetchBalance() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/balance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ initData: tg.initData })
+                });
+                if (!resp.ok) throw new Error('balance fetch failed');
+                const data = await resp.json(); // { coins: number }
+                userCoins = data.coins;
+                localStorage.setItem('ccd_coins', userCoins); // кэш только для офлайн-отображения
+                document.getElementById('coin-balance').innerText = userCoins;
+            } catch (err) {
+                console.warn('using cached balance, backend unreachable', err);
+                document.getElementById('coin-balance').innerText = userCoins;
+            }
+        }
+
+        // Локальное списание/начисление используется ТОЛЬКО для покупок машин в гараже
+        // (некритичная игровая экономика); реальные донат-монеты начисляет только backend.
+        function updateCoinsLocal(amount) {
             userCoins += amount;
+            if (userCoins < 0) userCoins = 0;
             localStorage.setItem('ccd_coins', userCoins);
             document.getElementById('coin-balance').innerText = userCoins;
         }
 
-        // МУЛЬТИПЛЕЕР С ДРУЗЬЯМИ (ОТПРАВКА ССЫЛКИ ДЛЯ ПОДКЛЮЧЕНИЯ ДО 10 ЧЕЛОВЕК)
-        function createFriendRoom() {
-            if (!isSubscribed) {
-                tg.showAlert("Подпишись на канал для участия в заездах!");
+        // =========================================================================================
+        // WEBSOCKET: комнаты с другом и публичный матчмейкинг на 10 игроков.
+        // СЕРВЕР должен реализовать протокол сообщений (пример реализован в server.js):
+        //   -> {type:'create_room'}                       server <- client
+        //   <- {type:'room_created', roomId, players}      server -> client
+        //   -> {type:'join_room', roomId}
+        //   <- {type:'room_update', roomId, players}        (рассылается всем в комнате)
+        //   -> {type:'join_public_queue'}
+        //   <- {type:'room_update', ...}  (сервер сам собирает до 10 игроков)
+        //   -> {type:'set_ready', ready:true/false}
+        //   -> {type:'force_start'} (только host)
+        //   <- {type:'race_start', seed, players}
+        //   -> {type:'position_update', distance, speed}    (во время гонки, часто)
+        //   <- {type:'positions', players:[{id,distance,speed}]}
+        //   <- {type:'race_finished', standings}
+        //   -> {type:'leave_room'}
+        // =========================================================================================
+        let socket = null;
+        let wsReconnectTimer = null;
+
+        function connectSocket() {
+            try {
+                socket = new WebSocket(WS_URL);
+            } catch (e) {
+                console.error('WS connect failed', e);
                 return;
             }
-            isBotMode = false;
-            switchScreen('screen-matchmaking');
-            
-            roomPlayers = [{ name: username, car: chosenCar, isMe: true }];
-            renderRoomList();
-
-            // Генерация ссылки для приглашения друга
-            let inviteLink = `https://t.me/share/url?url=https://t.me/mods_ccd_bot/app?startapp=room_${Math.floor(Math.random()*100000)}&text=Заходи срочно в мою комнату гонки на 10 человек в CCD RACE!`;
-            tg.openTelegramLink(inviteLink);
-
-            document.getElementById('start-room-btn').style.display = 'block';
+            socket.onopen = () => { console.log('WS connected'); };
+            socket.onclose = () => {
+                console.log('WS closed, retry in 2s');
+                wsReconnectTimer = setTimeout(connectSocket, 2000);
+            };
+            socket.onerror = (e) => console.error('WS error', e);
+            socket.onmessage = (evt) => {
+                let msg;
+                try { msg = JSON.parse(evt.data); } catch (e) { return; }
+                handleServerMessage(msg);
+            };
         }
 
-        // РЕЖИМ С БОТАМИ (ОДИНОЧНЫЙ)
-        function startBotMode() {
-            if (!isSubscribed) {
-                tg.showAlert("Подпишись на канал для участия в заездах!");
-                return;
+        function wsSend(obj) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify(obj));
+            } else {
+                console.warn('WS not open, message dropped', obj);
+                tg.showAlert("Нет связи с сервером. Проверьте подключение.");
             }
-            isBotMode = true;
-            roomPlayers = [
-                { name: username, car: chosenCar, isMe: true },
-                { name: "Bot_Turbo", car: carsDatabase[1], isMe: false },
-                { name: "Bot_Neon", car: carsDatabase[2], isMe: false },
-                { name: "Bot_Street", car: carsDatabase[3], isMe: false }
-            ];
-            launchRealRace(true);
+        }
+
+        function handleServerMessage(msg) {
+            switch (msg.type) {
+                case 'room_created':
+                case 'room_update':
+                    currentRoomId = msg.roomId;
+                    isHost = msg.hostId === userId;
+                    roomPlayers = msg.players; // [{id, name, car, ready, isHost}]
+                    renderRoomList();
+                    break;
+                case 'race_start':
+                    launchRealRace(false, msg.players);
+                    break;
+                case 'positions':
+                    applyRemotePositions(msg.players);
+                    break;
+                case 'race_finished':
+                    renderFinalStandings(msg.standings);
+                    break;
+                case 'error':
+                    tg.showAlert(msg.message || 'Ошибка сервера');
+                    break;
+            }
+        }
+
+        // ---------------------------------------------------------------------------------
+        // РЕЖИМ "КОМНАТА С ДРУГОМ"
+        // ---------------------------------------------------------------------------------
+        function createFriendRoom() {
+            if (!guardSubscribed()) return;
+            currentMode = 'friend';
+            myReady = false; isHost = true;
+            document.getElementById('matchmaking-title').innerText = 'Комната Друзей';
+            document.getElementById('room-code-display').style.display = 'block';
+            switchScreen('screen-matchmaking');
+            if (!socket || socket.readyState !== WebSocket.OPEN) connectSocket();
+            wsSend({ type: 'create_room', name: username, car: chosenCar, userId });
+        }
+
+        // Вызывается автоматически, если приложение открыто по ссылке-приглашению
+        // (Telegram передает параметр в tg.initDataUnsafe.start_param, например room_12345)
+        function tryAutoJoinFromStartParam() {
+            const startParam = tg.initDataUnsafe?.start_param;
+            if (startParam && startParam.startsWith('room_')) {
+                const roomId = startParam.replace('room_', '');
+                if (!guardSubscribed()) return;
+                currentMode = 'friend';
+                myReady = false; isHost = false;
+                document.getElementById('matchmaking-title').innerText = 'Комната Друзей';
+                document.getElementById('room-code-display').style.display = 'block';
+                switchScreen('screen-matchmaking');
+                if (!socket || socket.readyState !== WebSocket.OPEN) connectSocket();
+                setTimeout(() => wsSend({ type: 'join_room', roomId, name: username, car: chosenCar, userId }), 300);
+            }
+        }
+
+        function shareInviteLink(roomId) {
+            let inviteLink = `https://t.me/share/url?url=https://t.me/mods_ccd_bot/app?startapp=room_${roomId}&text=Заходи в мою комнату CCD RACE на 10 человек!`;
+            tg.openTelegramLink(inviteLink);
+        }
+
+        // ---------------------------------------------------------------------------------
+        // РЕЖИМ "ОНЛАЙН НА 10 ИГРОКОВ" — публичный матчмейкинг через сервер
+        // ---------------------------------------------------------------------------------
+        function joinPublicMatch() {
+            if (!guardSubscribed()) return;
+            currentMode = 'public';
+            myReady = false; isHost = false;
+            document.getElementById('matchmaking-title').innerText = 'Онлайн Матч (до 10)';
+            document.getElementById('room-code-display').style.display = 'none';
+            switchScreen('screen-matchmaking');
+            if (!socket || socket.readyState !== WebSocket.OPEN) connectSocket();
+            wsSend({ type: 'join_public_queue', name: username, car: chosenCar, userId });
+        }
+
+        function toggleReady() {
+            myReady = !myReady;
+            document.getElementById('ready-toggle-btn').innerText = myReady ? 'Готовность отменена ❌' : 'Я готов ✅';
+            wsSend({ type: 'set_ready', ready: myReady });
+        }
+
+        function hostForceStart() {
+            if (!isHost) return;
+            wsSend({ type: 'force_start' });
+        }
+
+        function leaveRoom() {
+            wsSend({ type: 'leave_room' });
+            currentRoomId = null;
+            switchScreen('screen-menu');
         }
 
         function renderRoomList() {
             const listEl = document.getElementById('room-players-list');
             listEl.innerHTML = '';
-            roomPlayers.forEach((p, idx) => {
+            roomPlayers.forEach((p) => {
                 const item = document.createElement('div');
-                item.className = `player-badge ${p.isMe ? 'host' : 'ready'}`;
-                item.innerHTML = `<span>${idx + 1}. ${p.name} ${p.isMe ? '(Вы)' : ''}</span><span>${p.car.icon} Готов</span>`;
+                item.className = `player-badge ${p.isHost ? 'host' : ''} ${p.ready ? 'ready' : ''}`;
+                item.innerHTML = `<span>${p.isHost ? '👑 ' : ''}${p.name}${p.id === userId ? ' (Вы)' : ''}</span><span class="status-pill">${p.ready ? 'ГОТОВ' : 'Ожидание'}</span>`;
                 listEl.appendChild(item);
             });
-            document.getElementById('room-id-display').innerText = `Игроков в комнате: ${roomPlayers.length} / 10 (Ждем друга)`;
+            document.getElementById('room-id-display').innerText = `Игроков в комнате: ${roomPlayers.length} / 10`;
+            if (currentRoomId) document.getElementById('room-code-display').innerText = `КОД: ${currentRoomId}`;
+
+            const allReady = roomPlayers.length >= 2 && roomPlayers.every(p => p.ready);
+            document.getElementById('start-room-btn').style.display = (isHost && allReady) ? 'block' : 'none';
+
+            if (isHost && currentMode === 'friend' && roomPlayers.length === 1) {
+                // сразу предложим отправить приглашение при создании комнаты
+                shareInviteLink(currentRoomId);
+            }
         }
 
-        function launchRealRace(isBotSession) {
+        // ---------------------------------------------------------------------------------
+        // БОТЫ: сложность, вероятности ошибок/идеальных стартов/заносов — см. createBotAI()
+        // ---------------------------------------------------------------------------------
+        function openBotDifficultyPicker() {
+            if (!guardSubscribed()) return;
+            switchScreen('screen-bot-difficulty');
+        }
+        function pickBotDifficulty(diff) {
+            botDifficulty = diff;
+            document.querySelectorAll('.diff-chip').forEach(c => c.classList.toggle('active', c.dataset.diff === diff));
+        }
+
+        const DIFFICULTY_PROFILES = {
+            easy:   { topSpeed: [130, 165], mistakeChance: 0.05, perfectStartChance: 0.10, badStartChance: 0.30, driftChance: 0.03, accelJitter: 6 },
+            medium: { topSpeed: [160, 205], mistakeChance: 0.03, perfectStartChance: 0.20, badStartChance: 0.15, driftChance: 0.02, accelJitter: 8 },
+            hard:   { topSpeed: [200, 250], mistakeChance: 0.015, perfectStartChance: 0.35, badStartChance: 0.05, driftChance: 0.015, accelJitter: 10 },
+        };
+
+        function createBotAI(name, difficulty) {
+            const profile = DIFFICULTY_PROFILES[difficulty];
+            const topSpeed = profile.topSpeed[0] + Math.random() * (profile.topSpeed[1] - profile.topSpeed[0]);
+            const startRoll = Math.random();
+            let startDelayFrames = 5 + Math.floor(Math.random() * 8); // "реакция" на старте
+            if (startRoll < profile.perfectStartChance) startDelayFrames = 0;
+            else if (startRoll < profile.perfectStartChance + profile.badStartChance) startDelayFrames += 12;
+            return {
+                name, difficulty, topSpeed, profile,
+                framesSinceStart: 0, startDelayFrames,
+                inDrift: false, driftFrames: 0,
+                speed: 0, distance: 0,
+            };
+        }
+
+        function stepBotAI(bot) {
+            bot.framesSinceStart++;
+            if (bot.framesSinceStart < bot.startDelayFrames) return; // еще не тронулся — "реакция"
+
+            if (bot.inDrift) {
+                bot.driftFrames--;
+                bot.speed -= 4.5;
+                if (bot.speed < 0) bot.speed = 0;
+                if (bot.driftFrames <= 0) bot.inDrift = false;
+                bot.distance += bot.speed * 0.04;
+                return;
+            }
+
+            // случайный занос (ошибка бота)
+            if (Math.random() < bot.profile.driftChance) {
+                bot.inDrift = true;
+                bot.driftFrames = 10 + Math.floor(Math.random() * 15);
+            }
+
+            // случайное ускорение/замедление + шанс "грубой ошибки" (резкий сброс газа)
+            let delta = (Math.random() * bot.profile.accelJitter) - (bot.profile.accelJitter * 0.35);
+            if (Math.random() < bot.profile.mistakeChance) delta -= 25; // ошибся, отпустил газ
+
+            bot.speed += delta;
+            if (bot.speed > bot.topSpeed) bot.speed = bot.topSpeed;
+            if (bot.speed < 20) bot.speed = 20;
+
+            bot.distance += bot.speed * 0.04;
+        }
+
+        // ---------------------------------------------------------------------------------
+        // РЕЖИМ С БОТАМИ (ОДИНОЧНЫЙ) — полностью локальный, сервер не нужен
+        // ---------------------------------------------------------------------------------
+        function startBotMode() {
+            if (!guardSubscribed()) return;
+            isBotMode = true;
+            const botNames = { easy: ['Bot_Novice', 'Bot_Slowpoke', 'Bot_Cruiser'], medium: ['Bot_Turbo', 'Bot_Neon', 'Bot_Street'], hard: ['Bot_Apex', 'Bot_Overdrive', 'Bot_Reaper'] };
+            const names = botNames[botDifficulty];
+            roomPlayers = [
+                { id: userId, name: username, car: chosenCar, isMe: true },
+                { id: 'bot1', name: names[0], car: carsDatabase[1], isMe: false, isBot: true },
+                { id: 'bot2', name: names[1], car: carsDatabase[2], isMe: false, isBot: true },
+                { id: 'bot3', name: names[2], car: carsDatabase[3], isMe: false, isBot: true }
+            ];
+            launchRealRace(true);
+        }
+
+        function launchRealRace(isBotSession, serverPlayers) {
             switchScreen('screen-game');
             raceStarted = false; playerSpeed = 0; playerDistance = 0; isInDrift = false; driftChanceCounter = 0;
             raceTimeLeft = 30.0;
@@ -484,42 +871,42 @@
             const field = document.getElementById('raceField');
             field.innerHTML = '';
 
+            const players = serverPlayers || roomPlayers;
             activeRacers = [];
-            let totalRacers = roomPlayers.length;
+            let totalRacers = players.length;
 
-            roomPlayers.forEach((p, index) => {
+            players.forEach((p, index) => {
                 let topPercent = 5 + (index * (85 / Math.max(1, totalRacers - 1)));
-                if(totalRacers === 1) topPercent = 40;
+                if (totalRacers === 1) topPercent = 40;
 
                 const node = document.createElement('div');
-                node.className = `racer-node-horiz ${p.isMe ? 'me' : ''}`;
+                const isMe = p.isMe || p.id === userId;
+                node.className = `racer-node-horiz ${isMe ? 'me' : ''} ${p.isBot ? 'bot' : ''}`;
                 node.id = `racer-${index}`;
                 node.style.top = `${topPercent}%`;
                 node.style.left = '20px';
 
-                let skinHtml = p.car.image ? `<div class="racer-skin-slot-horiz" style="background-image:url('${p.car.image}')"></div>` : `<div class="racer-skin-slot-horiz">${p.car.icon}</div>`;
+                let skinHtml = p.car && p.car.image ? `<div class="racer-skin-slot-horiz" style="background-image:url('${p.car.image}')"></div>` : `<div class="racer-skin-slot-horiz">${p.car ? p.car.icon : '🚗'}</div>`;
                 node.innerHTML = skinHtml + `<span class="racer-tag-horiz">${p.name}</span>`;
                 field.appendChild(node);
 
                 activeRacers.push({
-                    index: index,
-                    name: p.name,
-                    isMe: p.isMe,
-                    isBot: !p.isMe && isBotSession,
-                    speed: 0,
-                    distance: 0,
+                    index, name: p.name, id: p.id, isMe,
+                    isBot: !!p.isBot,
+                    bot: p.isBot ? createBotAI(p.name, botDifficulty) : null,
+                    speed: 0, distance: 0,
                     element: node
                 });
             });
 
-            runTrafficLights();
+            runTrafficLights(isBotSession);
         }
 
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            if(id === 'screen-garage') renderGarage();
-            if(id === 'screen-menu') refreshLeaderboardUI();
+            if (id === 'screen-garage') renderGarage();
+            if (id === 'screen-menu') { refreshLeaderboardUI(); playMenuMusic(); }
         }
 
         function renderGarage() {
@@ -528,15 +915,15 @@
                 const card = document.createElement('div');
                 let isOwned = ownedCars.includes(car.id);
                 card.className = `car-card ${currentGarageCar.id === car.id ? 'active-selection' : ''}`;
-                
-                if(car.image) {
+
+                if (car.image) {
                     card.innerHTML = `<div style="width:30px; height:30px; background-image:url('${car.image}'); background-size:contain; background-repeat:no-repeat;"></div>`;
                 } else {
                     card.innerHTML = `<div style="font-size:24px;">${car.icon}</div>`;
                 }
 
                 let pTag = document.createElement('div');
-                pTag.style.fontSize = '10px'; pTag.style.fontWeight = 'bold'; pTag.style.color = '#f57c00';
+                pTag.style.fontSize = '10px'; pTag.style.fontWeight = 'bold'; pTag.style.color = 'var(--speed-color)';
                 pTag.innerText = isOwned ? "ОТКРЫТО" : `${car.price} 💰`;
                 card.appendChild(pTag);
 
@@ -548,29 +935,29 @@
         function selectCar(car) {
             let isOwned = ownedCars.includes(car.id);
             const renderZone = document.getElementById('garage-car-render');
-            
-            if(car.image) {
+
+            if (car.image) {
                 renderZone.innerText = ''; renderZone.style.backgroundImage = `url('${car.image}')`;
             } else {
                 renderZone.style.backgroundImage = 'none'; renderZone.innerText = car.icon;
             }
             document.getElementById('garage-car-name').innerText = car.name;
-            
+
             const btn = document.getElementById('garage-action-btn');
-            if(isOwned) {
-                btn.innerText = "Выбрать эту тачку"; btn.style.background = "var(--accent-color)";
+            if (isOwned) {
+                btn.innerText = "Выбрать эту тачку"; btn.style.background = "";
             } else {
-                btn.innerText = `Купить за ${car.price} монет`; btn.style.background = "#f57c00";
+                btn.innerText = `Купить за ${car.price} монет`; btn.style.background = "linear-gradient(180deg,#ffcf3d,#e0a11a)";
             }
             renderGarage();
         }
 
         function handleGarageAction() {
             let isOwned = ownedCars.includes(currentGarageCar.id);
-            if(isOwned) {
+            if (isOwned) {
                 chosenCar = currentGarageCar;
                 const menuRender = document.getElementById('menu-car-render');
-                if(chosenCar.image) {
+                if (chosenCar.image) {
                     menuRender.innerText = ''; menuRender.style.backgroundImage = `url('${chosenCar.image}')`;
                 } else {
                     menuRender.style.backgroundImage = 'none'; menuRender.innerText = chosenCar.icon;
@@ -578,8 +965,8 @@
                 document.getElementById('main-car-name').innerText = chosenCar.name;
                 switchScreen('screen-menu');
             } else {
-                if(userCoins >= currentGarageCar.price) {
-                    updateCoins(-currentGarageCar.price);
+                if (userCoins >= currentGarageCar.price) {
+                    updateCoinsLocal(-currentGarageCar.price);
                     ownedCars.push(currentGarageCar.id);
                     localStorage.setItem('ccd_owned_cars', JSON.stringify(ownedCars));
                     selectCar(currentGarageCar);
@@ -589,29 +976,33 @@
             }
         }
 
-        function runTrafficLights() {
+        function runTrafficLights(isBotSession) {
             const red = document.getElementById('light-red');
             const yellow = document.getElementById('light-yellow');
             const green = document.getElementById('light-green');
 
-            setTimeout(() => { red.classList.add('active'); }, 300);
+            setTimeout(() => { red.classList.add('active'); safePlay(SFX.gearshift); }, 300);
             setTimeout(() => { yellow.classList.add('active'); }, 900);
             setTimeout(() => {
                 red.classList.remove('active'); yellow.classList.remove('active'); green.classList.add('active');
                 raceStarted = true;
                 document.getElementById('medalClicker').classList.remove('disabled');
-                if(gameTicker) clearInterval(gameTicker);
-                gameTicker = setInterval(updatePhysicsLoop, 40);
+                safePlay(SFX.start);
+                playRaceMusic();
+                if (soundOn) { try { SFX.engine.currentTime = 0; SFX.engine.play().catch(()=>{}); } catch(e){} }
+                if (gameTicker) clearInterval(gameTicker);
+                gameTicker = setInterval(() => updatePhysicsLoop(isBotSession), 40);
             }, 1500);
         }
 
         function doTap() {
-            if(!raceStarted) return;
+            if (!raceStarted) return;
             let me = activeRacers.find(r => r.isMe);
-            if(!me) return;
-            if(isInDrift) { playerSpeed -= 1; return; }
+            if (!me) return;
+            if (isInDrift) { playerSpeed -= 1; return; }
             playerSpeed += 12;
-            if(playerSpeed > 260) playerSpeed = 260;
+            if (playerSpeed > 260) playerSpeed = 260;
+            safePlay(SFX.accel);
         }
 
         document.getElementById('medalClicker').addEventListener('touchstart', (e) => { e.preventDefault(); doTap(); });
@@ -621,12 +1012,12 @@
             isInDrift = false;
             document.getElementById('driftBtn').style.display = 'none';
             let meNode = activeRacers.find(r => r.isMe);
-            if(meNode) meNode.element.classList.remove('shaking');
+            if (meNode) meNode.element.classList.remove('shaking');
             playerSpeed += 35;
         }
 
-        function updatePhysicsLoop() {
-            if(!raceStarted) return;
+        function updatePhysicsLoop(isBotSession) {
+            if (!raceStarted) return;
 
             raceTimeLeft -= 0.04;
             if (raceTimeLeft <= 0) {
@@ -638,80 +1029,124 @@
 
             let me = activeRacers.find(r => r.isMe);
 
-            if(!isInDrift) {
+            if (!isInDrift) {
                 driftChanceCounter++;
-                if(driftChanceCounter > 100 && Math.random() < 0.02) {
+                if (driftChanceCounter > 100 && Math.random() < 0.02) {
                     isInDrift = true;
                     driftChanceCounter = 0;
                     document.getElementById('driftBtn').style.display = 'block';
-                    if(me) me.element.classList.add('shaking');
+                    if (me) me.element.classList.add('shaking');
+                    safePlay(SFX.drift);
                 }
             }
 
-            if(isInDrift) playerSpeed -= 4.2;
+            if (isInDrift) playerSpeed -= 4.2;
             else playerSpeed -= 1.6;
-            if(playerSpeed < 0) playerSpeed = 0;
-            
+            if (playerSpeed < 0) playerSpeed = 0;
+
             playerDistance += playerSpeed * 0.04;
 
             const roadBg = document.getElementById('roadBg');
-            if(playerSpeed > 0) {
+            if (playerSpeed > 0) {
                 roadBg.style.backgroundPositionX = `-${(playerDistance * 2.5) % 50}px`;
             }
 
             activeRacers.forEach(racer => {
-                if(racer.isMe) {
+                if (racer.isMe) {
                     racer.speed = playerSpeed;
                     racer.distance = playerDistance;
-                } else if(racer.isBot) {
-                    // Боты двигаются только в отдельном режиме с ботами
-                    racer.speed += (Math.random() * 8.0 - 3.8);
-                    if(racer.speed > 195) racer.speed = 195;
-                    if(racer.speed < 40) racer.speed = 40;
-                    racer.distance += racer.speed * 0.04;
-                } else {
-                    // В режиме с другом второй игрок управляется автономно или стоит на старте до подключения
-                    racer.speed = 0;
+                } else if (racer.isBot && isBotSession) {
+                    stepBotAI(racer.bot);
+                    racer.speed = racer.bot.speed;
+                    racer.distance = racer.bot.distance;
+                    if (racer.bot.inDrift) racer.element.classList.add('shaking');
+                    else racer.element.classList.remove('shaking');
+                } else if (currentMode === 'public' || currentMode === 'friend') {
+                    // В реальном онлайн-режиме позиции соперников приходят с сервера
+                    // через сообщение {type:'positions'} — см. applyRemotePositions(). Здесь ничего не делаем.
                 }
 
                 let visualLeft = 20 + (racer.speed / 260) * 140 + (racer.distance - playerDistance) * 0.35;
-                if(racer.isMe) visualLeft = 20 + (playerSpeed / 260) * 140;
+                if (racer.isMe) visualLeft = 20 + (playerSpeed / 260) * 140;
 
-                if(visualLeft < -60) visualLeft = -60;
-                if(visualLeft > window.innerWidth - 60) visualLeft = window.innerWidth - 60;
+                if (visualLeft < -60) visualLeft = -60;
+                if (visualLeft > window.innerWidth - 60) visualLeft = window.innerWidth - 60;
 
                 racer.element.style.left = `${visualLeft}px`;
             });
 
             document.getElementById('gameSpeed').innerText = Math.floor(playerSpeed * 1.35);
+
+            // В реальном мультиплеере отправляем свою позицию на сервер (throttled)
+            if ((currentMode === 'public' || currentMode === 'friend') && !isBotSession) {
+                wsSend({ type: 'position_update', distance: playerDistance, speed: playerSpeed });
+            }
+        }
+
+        // Применение позиций соперников, полученных с сервера (реальный мультиплеер)
+        function applyRemotePositions(serverPlayers) {
+            serverPlayers.forEach(sp => {
+                const racer = activeRacers.find(r => r.id === sp.id);
+                if (!racer || racer.isMe) return;
+                racer.speed = sp.speed;
+                racer.distance = sp.distance;
+            });
+        }
+
+        function renderFinalStandings(standings) {
+            // standings: [{id, name, distance, rank}] — приходит с сервера в реальном мультиплеере
+            clearInterval(gameTicker); gameTicker = null;
+            SFX.engine.pause();
+            switchScreen('screen-results');
+            const mine = standings.find(s => s.id === userId);
+            const myRank = mine ? mine.rank : standings.length;
+            finishResultsUI(myRank, standings.length, mine ? Math.floor(mine.distance) : Math.floor(playerDistance));
         }
 
         function handleRaceFinish() {
             clearInterval(gameTicker);
             gameTicker = null;
+            SFX.engine.pause();
             let me = activeRacers.find(r => r.isMe);
-            if(me) me.element.classList.remove('shaking');
+            if (me) me.element.classList.remove('shaking');
+            safePlay(SFX.finish);
+
+            if (currentMode === 'public' || currentMode === 'friend') {
+                // Финальные места в реальном мультиплеере считает сервер и присылает 'race_finished'
+                wsSend({ type: 'race_finished_client', distance: playerDistance });
+                return;
+            }
+
             switchScreen('screen-results');
-
-            activeRacers.sort((a,b) => b.distance - a.distance);
+            activeRacers.sort((a, b) => b.distance - a.distance);
             let myRank = activeRacers.findIndex(r => r.isMe) + 1;
+            finishResultsUI(myRank, activeRacers.length, Math.floor(playerDistance));
+        }
 
-            let finalMeters = Math.floor(playerDistance);
+        function finishResultsUI(myRank, totalRacers, finalMeters) {
             let currentBest = parseInt(localStorage.getItem('ccd_player_score')) || 0;
-            
             if (finalMeters > currentBest) {
                 localStorage.setItem('ccd_player_score', finalMeters);
                 let myRecord = realUsersRating.find(u => u.name === username);
-                if(myRecord) myRecord.score = finalMeters;
+                if (myRecord) myRecord.score = finalMeters;
             }
 
             let coinsEarned = Math.max(5, Math.floor(finalMeters / 30) + (11 - myRank) * 2);
-            updateCoins(coinsEarned);
+            updateCoinsLocal(coinsEarned); // игровая награда — локальная экономика; донат-монеты см. fetchBalance()
 
-            document.getElementById('res-rank').innerText = `ТВОЕ МЕСТО: #${myRank} ИЗ ${activeRacers.length}`;
+            document.getElementById('res-medal').innerText = myRank === 1 ? '🏆' : (myRank <= 3 ? '🥈' : '🏁');
+            document.getElementById('res-rank').innerText = `ТВОЕ МЕСТО: #${myRank} ИЗ ${totalRacers}`;
+            document.getElementById('res-desc').innerText = `Заезд завершен! Пройдено дистанции: ${finalMeters} метров.`;
             document.getElementById('res-reward').innerText = `+${coinsEarned} 💰 монеток`;
-            document.getElementById('res-desc', `Заезд завершен! Пройдено дистанции: ${finalMeters} метров.`);
+            safePlay(myRank === 1 ? SFX.win : SFX.lose);
         }
+
+        // ---------------------------------------------------------------------------------
+        // Инициализация: пробуем автоматически проверить подписку и подключиться к комнате
+        // по ссылке-приглашению (если приложение открыто через startapp=room_ID)
+        // ---------------------------------------------------------------------------------
+        checkSubscriptionReal();
+        tryAutoJoinFromStartParam();
     </script>
 </body>
 </html>
