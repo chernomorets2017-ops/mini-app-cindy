@@ -33,10 +33,24 @@
         body {
             background: var(--bg-color);
             color: var(--text-color); overflow: hidden; height: 100vh; display: flex; flex-direction: column;
+            position: relative;
         }
+        /* Декоративный фон: разбросанные гоночные аксессуары (флаг, шина, гаечный ключ, искры скорости).
+           Показывается только под меню/лобби/гаражом — игровой экран (трасса) поверх него непрозрачен. */
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><text x='6' y='46' font-size='40' opacity='0.55'>%F0%9F%8F%81</text><text x='150' y='40' font-size='30' opacity='0.5'>%F0%9F%92%A8</text><text x='40' y='140' font-size='34' opacity='0.5'>%F0%9F%9B%9E</text><text x='170' y='150' font-size='28' opacity='0.5'>%F0%9F%94%A7</text><text x='90' y='230' font-size='36' opacity='0.5'>%F0%9F%8F%8E%EF%B8%8F</text><text x='210' y='220' font-size='26' opacity='0.5'>%E2%9A%A1</text></svg>");
+            background-repeat: repeat; background-size: 260px 260px;
+            opacity: 0.05;
+        }
+        .screen { position: relative; z-index: 1; }
 
-        .screen { display: none; flex-direction: column; height: 100vh; width: 100%; padding: 16px; overflow-y: auto; }
+        .screen { display: none; flex-direction: column; height: 100vh; width: 100%; padding: 16px; overflow-y: auto; position: relative; z-index: 1; }
         .screen.active { display: flex; }
+
+        .bg-decor { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+        .bg-decor span { position: absolute; opacity: 0.05; filter: grayscale(0.4); user-select: none; }
 
         h1 { font-size: 26px; text-transform: uppercase; text-align: center; font-style: italic; letter-spacing: 3px; color: #111; margin-bottom: 4px; text-shadow: var(--neon-glow); }
         h2 { font-size: 16px; text-transform: uppercase; margin-bottom: 8px; font-style: italic; color: #111; letter-spacing: 1px; }
@@ -126,18 +140,46 @@
 
         .horizontal-track {
             height: 50%; position: relative; overflow: hidden;
-            background: linear-gradient(180deg, #1a1c24, #0d0e13);
+            background:
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 6px),
+                linear-gradient(180deg, #4a4d56 0%, #383a42 45%, #2c2e35 100%);
             border-top: 4px solid var(--accent-color); border-bottom: 4px solid var(--accent-color);
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.6), var(--neon-glow);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.55), var(--neon-glow);
         }
 
-        .track-shoulder-top { position: absolute; top: 0; left: 0; width: 100%; height: 20%; background: repeating-linear-gradient(90deg, #23262f, #23262f 14px, #ff1744 14px, #ff1744 20px); opacity: 0.35; border-bottom: 2px dashed #3a3d4a; z-index: 2; }
-        .track-shoulder-bottom { position: absolute; bottom: 0; left: 0; width: 100%; height: 20%; background: repeating-linear-gradient(90deg, #23262f, #23262f 14px, #ff1744 14px, #ff1744 20px); opacity: 0.35; border-top: 2px dashed #3a3d4a; z-index: 2; }
+        /* Обочина шоссе: асфальтовая полоса + металлическое ограждение с катафотами */
+        .track-shoulder-top, .track-shoulder-bottom {
+            position: absolute; left: 0; width: 100%; height: 20%; z-index: 2;
+            background: linear-gradient(180deg, #35373e 0%, #2a2c32 100%);
+        }
+        .track-shoulder-top { top: 0; }
+        .track-shoulder-bottom { bottom: 0; }
+        .track-shoulder-top::after, .track-shoulder-bottom::after {
+            content: ''; position: absolute; left: 0; width: 100%; height: 10px;
+            background:
+                repeating-linear-gradient(90deg, #babcc2 0px, #babcc2 26px, #8a8c92 26px, #8a8c92 30px),
+                repeating-linear-gradient(90deg, transparent 0px, transparent 12px, #ffd600 12px, #ffd600 15px, transparent 15px, transparent 30px);
+            box-shadow: 0 0 6px rgba(0,0,0,0.5);
+        }
+        .track-shoulder-top::after { bottom: 0; }
+        .track-shoulder-bottom::after { top: 0; }
+        /* Полоса разметки на самом краю дороги (сплошная белая линия шоссе) */
+        .track-shoulder-top::before, .track-shoulder-bottom::before {
+            content: ''; position: absolute; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.85);
+        }
+        .track-shoulder-top::before { bottom: -3px; }
+        .track-shoulder-bottom::before { top: -3px; }
 
         .road-moving-canvas {
             position: absolute; top: 20%; height: 60%; width: 200%; left: 0;
-            background-image: linear-gradient(to right, #ffd60022 40%, transparent 40%);
-            background-size: 50px 6px; background-repeat: repeat-x; background-position: center;
+            background-repeat: repeat-x;
+            background-image:
+                repeating-linear-gradient(to right, rgba(255,255,255,0.85) 0px, rgba(255,255,255,0.85) 22px, transparent 22px, transparent 48px),
+                repeating-linear-gradient(to right, rgba(255,255,255,0.85) 0px, rgba(255,255,255,0.85) 22px, transparent 22px, transparent 48px),
+                linear-gradient(to bottom, #ffd600 0%, #ffd600 100%),
+                linear-gradient(to bottom, #ffd600 0%, #ffd600 100%);
+            background-size: 48px 3px, 48px 3px, 100% 3px, 100% 3px;
+            background-position: 0 22%, 0 78%, center calc(50% - 5px), center calc(50% + 5px);
         }
 
         .race-field-horiz { position: absolute; top: 20%; height: 60%; left: 0; right: 0; z-index: 5; }
@@ -232,17 +274,30 @@
 </head>
 <body>
 
+    <!-- Фоновые гоночные акценты: декоративные, не мешают взаимодействию (pointer-events:none) -->
+    <div class="bg-decor" aria-hidden="true">
+        <span style="top:6%; left:-4%; font-size:110px; transform:rotate(-18deg);">🏁</span>
+        <span style="top:70%; left:78%; font-size:130px; transform:rotate(14deg);">🏁</span>
+        <span style="top:22%; left:80%; font-size:90px; transform:rotate(25deg);">🛞</span>
+        <span style="top:85%; left:6%; font-size:80px; transform:rotate(-10deg);">🛞</span>
+        <span style="top:45%; left:-6%; font-size:100px; transform:rotate(8deg);">🔧</span>
+        <span style="top:2%; left:55%; font-size:70px; transform:rotate(-6deg);">🏆</span>
+        <span style="top:60%; left:40%; font-size:60px; transform:rotate(20deg);">🏎️</span>
+        <span style="top:32%; left:30%; font-size:50px; transform:rotate(-15deg);">⛽</span>
+    </div>
+
+
     <!-- МОДАЛЬНОЕ ОКНО ДОНАТА: реальный платеж запускается через backend (Bot API sendInvoice), см. executePurchase() -->
     <div class="modal-overlay" id="donateModal">
         <div class="modal-card">
             <h2 style="text-align:center; margin-bottom:16px;">Магазин Монет 💰</h2>
-            <div class="tariff-row" onclick="executePurchase(50, 100)">
-                <div class="tariff-info"><span class="tariff-coins">100 Монеток</span><span class="tariff-price">Стартовый набор</span></div>
-                <button class="btn-donate">50 ₽</button>
-            </div>
-            <div class="tariff-row" onclick="executePurchase(100, 250)">
-                <div class="tariff-info"><span class="tariff-coins">250 Монеток</span><span class="tariff-price">Любительский пак</span></div>
+            <div class="tariff-row" onclick="executePurchase(100, 200)">
+                <div class="tariff-info"><span class="tariff-coins">200 Монеток</span><span class="tariff-price">Стартовый набор</span></div>
                 <button class="btn-donate">100 ₽</button>
+            </div>
+            <div class="tariff-row" onclick="executePurchase(200, 500)">
+                <div class="tariff-info"><span class="tariff-coins">500 Монеток</span><span class="tariff-price">Любительский пак</span></div>
+                <button class="btn-donate">200 ₽</button>
             </div>
             <div class="tariff-row" onclick="executePurchase(250, 700)">
                 <div class="tariff-info"><span class="tariff-coins">700 Монеток</span><span class="tariff-price">Турбо пак</span></div>
@@ -389,6 +444,7 @@
         const API_BASE = "https://mini-app-cindy.onrender.com";      // СЕРВЕР: HTTPS API (Express)
         const WS_URL    = "wss://mini-app-cindy.onrender.com/ws";    // СЕРВЕР: WebSocket endpoint для комнат/мультиплеера
         const CHANNEL_URL = "https://t.me/mods_ccd";
+        const BOT_USERNAME = "ccdracegame_bot"; // ⚠️ ЗАМЕНИТЕ на реальный username вашего бота из @BotFather (без @)
 
         const tg = window.Telegram.WebApp;
         tg.ready(); tg.expand();
@@ -472,6 +528,42 @@
         document.getElementById('coin-balance').innerText = userCoins;
         refreshLeaderboardUI();
         playMenuMusic();
+
+        // ---------------------------------------------------------------------------------
+        // ГЕНЕРАЦИЯ УНИКАЛЬНОГО ВИДА МАШИНЫ: процедурный SVG-силуэт, цвет считается из id
+        // (без внешних картинок — раскраска/полосы/спойлер уникальны для каждой тачки).
+        // ---------------------------------------------------------------------------------
+        function carColors(id) {
+            const hue = (id * 47) % 360;
+            return {
+                primary: `hsl(${hue} 70% 45%)`,
+                secondary: `hsl(${(hue + 35) % 360} 85% 62%)`,
+                dark: `hsl(${hue} 45% 18%)`
+            };
+        }
+        function carSVG(car, size) {
+            const { primary, secondary, dark } = carColors(car.id);
+            const gradId = `carGrad${car.id}`;
+            const hasSpoiler = car.price >= 2000;
+            const hasStripe = car.price >= 600;
+            const hasFlames = car.price >= 5000;
+            const hasNeonRim = car.price >= 8000;
+            return `<svg width="${size}" height="${size}" viewBox="0 0 120 70" xmlns="http://www.w3.org/2000/svg">
+                <defs><linearGradient id="${gradId}" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="${secondary}"/><stop offset="100%" stop-color="${primary}"/>
+                </linearGradient></defs>
+                <ellipse cx="60" cy="61" rx="48" ry="4" fill="rgba(0,0,0,0.22)"/>
+                <path d="M10,50 Q8,32 30,28 L40,14 Q46,8 60,8 L78,8 Q90,8 96,18 L108,30 Q114,34 114,44 L114,50 Q114,54 108,54 L14,54 Q10,54 10,50 Z" fill="url(#${gradId})" stroke="${dark}" stroke-width="2"/>
+                ${hasStripe ? `<rect x="47" y="8" width="9" height="46" fill="rgba(255,255,255,0.5)" transform="skewX(-8)"/>` : ''}
+                ${hasFlames ? `<path d="M16,44 Q22,36 18,30 Q28,34 26,42 Q34,36 30,48 Z" fill="#ffd600" opacity="0.85"/><path d="M16,44 Q20,40 18,35 Q24,38 23,44 Z" fill="#ff5722"/>` : ''}
+                <path d="M42,16 L58,14 L58,28 L38,28 Z" fill="rgba(190,225,255,0.55)"/>
+                <path d="M66,14 L84,18 L88,28 L66,28 Z" fill="rgba(190,225,255,0.55)"/>
+                ${hasSpoiler ? `<rect x="12" y="16" width="20" height="4" fill="${dark}"/><rect x="12" y="12" width="4" height="10" fill="${dark}"/><rect x="28" y="12" width="4" height="10" fill="${dark}"/>` : ''}
+                <circle cx="34" cy="54" r="10" fill="#1a1a1a"/><circle cx="34" cy="54" r="4" fill="${hasNeonRim ? '#ff1744' : '#ccc'}"/>
+                <circle cx="94" cy="54" r="10" fill="#1a1a1a"/><circle cx="94" cy="54" r="4" fill="${hasNeonRim ? '#ff1744' : '#ccc'}"/>
+                <circle cx="108" cy="34" r="3" fill="#fff8cc"/>
+            </svg>`;
+        }
 
         const carsDatabase = [
             { id: 0, icon: '🚗', name: 'Сток Городской', price: 0 },
@@ -572,7 +664,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ initData: tg.initData, priceRub, coinsAmount })
                 });
-                if (!resp.ok) throw new Error('invoice create failed ' + resp.status);
+                if (!resp.ok) {
+                    const errBody = await resp.json().catch(() => ({}));
+                    throw new Error(errBody.error || ('invoice create failed ' + resp.status));
+                }
                 const { invoiceLink } = await resp.json();
 
                 tg.openInvoice(invoiceLink, async function (status) {
@@ -587,7 +682,7 @@
                 });
             } catch (err) {
                 console.error('purchase failed', err);
-                tg.showAlert("Не удалось создать счет. Проверьте, что backend с Bot API запущен (см. server.js).");
+                tg.showAlert(err.message && err.message !== 'Failed to fetch' ? err.message : "Не удалось создать счет. Проверьте, что backend с Bot API запущен (см. server.js).");
             }
         }
 
@@ -724,7 +819,7 @@
         }
 
         function shareInviteLink(roomId) {
-            let inviteLink = `https://t.me/share/url?url=https://t.me/mods_ccd_bot/app?startapp=room_${roomId}&text=Заходи в мою комнату CCD RACE на 10 человек!`;
+            let inviteLink = `https://t.me/share/url?url=https://t.me/${BOT_USERNAME}/app?startapp=room_${roomId}&text=Заходи в мою комнату CCD RACE на 10 человек!`;
             tg.openTelegramLink(inviteLink);
         }
 
@@ -889,7 +984,7 @@
                 node.style.top = `${topPercent}%`;
                 node.style.left = '20px';
 
-                let skinHtml = p.car && p.car.image ? `<div class="racer-skin-slot-horiz" style="background-image:url('${p.car.image}')"></div>` : `<div class="racer-skin-slot-horiz">${p.car ? p.car.icon : '🚗'}</div>`;
+                let skinHtml = `<div class="racer-skin-slot-horiz">${carSVG(p.car || carsDatabase[0], 36)}</div>`;
                 node.innerHTML = skinHtml + `<span class="racer-tag-horiz">${p.name}</span>`;
                 field.appendChild(node);
 
@@ -919,11 +1014,7 @@
                 let isOwned = ownedCars.includes(car.id);
                 card.className = `car-card ${currentGarageCar.id === car.id ? 'active-selection' : ''}`;
 
-                if (car.image) {
-                    card.innerHTML = `<div style="width:30px; height:30px; background-image:url('${car.image}'); background-size:contain; background-repeat:no-repeat;"></div>`;
-                } else {
-                    card.innerHTML = `<div style="font-size:24px;">${car.icon}</div>`;
-                }
+                card.innerHTML = carSVG(car, 40);
 
                 let pTag = document.createElement('div');
                 pTag.style.fontSize = '10px'; pTag.style.fontWeight = 'bold'; pTag.style.color = 'var(--speed-color)';
@@ -938,12 +1029,7 @@
         function selectCar(car) {
             let isOwned = ownedCars.includes(car.id);
             const renderZone = document.getElementById('garage-car-render');
-
-            if (car.image) {
-                renderZone.innerText = ''; renderZone.style.backgroundImage = `url('${car.image}')`;
-            } else {
-                renderZone.style.backgroundImage = 'none'; renderZone.innerText = car.icon;
-            }
+            renderZone.innerHTML = carSVG(car, 74);
             document.getElementById('garage-car-name').innerText = car.name;
 
             const btn = document.getElementById('garage-action-btn');
@@ -960,11 +1046,7 @@
             if (isOwned) {
                 chosenCar = currentGarageCar;
                 const menuRender = document.getElementById('menu-car-render');
-                if (chosenCar.image) {
-                    menuRender.innerText = ''; menuRender.style.backgroundImage = `url('${chosenCar.image}')`;
-                } else {
-                    menuRender.style.backgroundImage = 'none'; menuRender.innerText = chosenCar.icon;
-                }
+                menuRender.innerHTML = carSVG(chosenCar, 74);
                 document.getElementById('main-car-name').innerText = chosenCar.name;
                 switchScreen('screen-menu');
             } else {
