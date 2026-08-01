@@ -87,6 +87,36 @@
         .leader-row:last-child { border-bottom: none; }
         .leader-row.player-highlight { font-weight: 800; color: var(--accent-color); }
 
+        /* Карусель режимов — свайп вместо стопки кнопок */
+        .mode-carousel {
+            display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+            padding: 4px 4px 10px 4px; margin-bottom: 4px; -webkit-overflow-scrolling: touch;
+        }
+        .mode-carousel::-webkit-scrollbar { display: none; }
+        .mode-card {
+            flex: 0 0 74%; scroll-snap-align: center; border-radius: 20px; padding: 18px 16px;
+            display: flex; flex-direction: column; gap: 4px; cursor: pointer; color: #fff;
+            box-shadow: 0 10px 22px rgba(20,20,30,0.14); border: 1px solid rgba(255,255,255,0.12);
+        }
+        .mode-card.mode-friend { background: linear-gradient(150deg, #9a6bff, #6a3dd6); }
+        .mode-card.mode-public { background: linear-gradient(150deg, #ff9a4d, #e0601a); }
+        .mode-card.mode-bot { background: linear-gradient(150deg, #26d9e8, #00838f); }
+        .mode-icon { font-size: 30px; }
+        .mode-title { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mode-desc { font-size: 11px; opacity: 0.9; font-weight: 600; }
+        .mode-hint { text-align: center; font-size: 10px; color: var(--text-muted); margin-bottom: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Гараж — нижний закреплённый док в виде гаражных ворот */
+        .garage-dock {
+            position: sticky; bottom: 0; left: 0; right: 0; margin: 0 -16px -16px -16px; cursor: pointer;
+            background: linear-gradient(180deg, #2a2d38, #16181f); border-top: 3px solid var(--accent-color);
+            box-shadow: 0 -8px 20px rgba(20,20,30,0.25); padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 5;
+        }
+        .garage-dock-doors { display: flex; gap: 4px; width: 100%; max-width: 220px; }
+        .garage-dock-doors span { flex: 1; height: 10px; background: repeating-linear-gradient(180deg, #3a3d4a 0px, #3a3d4a 2px, #2a2d38 2px, #2a2d38 4px); border-radius: 2px; border: 1px solid #454958; }
+        .garage-dock-label { color: #fff; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+
         .sub-alert-box {
             background: linear-gradient(135deg, rgba(255,214,0,0.12), rgba(255,214,0,0.04));
             border: 1px solid var(--speed-color); color: var(--speed-color); padding: 12px; border-radius: 14px; margin-bottom: 12px; text-align: center; font-size: 13px; font-weight: 700;
@@ -311,6 +341,17 @@
         </div>
     </div>
 
+    <!-- МОДАЛЬНОЕ ОКНО: подключение к комнате друга по коду вручную (запасной вариант, если ссылка не сработала) -->
+    <div class="modal-overlay" id="joinCodeModal">
+        <div class="modal-card">
+            <h2 style="text-align:center; margin-bottom:12px;">Код комнаты друга</h2>
+            <input id="joinCodeInput" type="tel" inputmode="numeric" maxlength="5" placeholder="12345"
+                   style="width:100%; text-align:center; font-family:monospace; font-size:22px; font-weight:900; letter-spacing:4px; padding:14px; border-radius:12px; border:1px solid var(--border-color); margin-bottom:12px; background:var(--surface-color); color:var(--text-color);">
+            <button class="btn btn-friend" onclick="submitJoinByCode()">Подключиться</button>
+            <button class="btn btn-secondary" onclick="closeJoinByCodeModal()">Отмена</button>
+        </div>
+    </div>
+
     <!-- ГЛАВНОЕ МЕНЮ -->
     <div id="screen-menu" class="screen active" style="position:relative;">
         <div class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</div>
@@ -336,14 +377,37 @@
             <div class="car-name" id="main-car-name">Сток Городской</div>
         </div>
 
-        <button class="btn btn-friend" id="btnCreateFriendRoom" onclick="createFriendRoom()">👥 Создать комнату с другом (до 10 чел)</button>
-        <button class="btn" id="btnJoinPublic" style="background:linear-gradient(180deg,#ff8a3d,#e0601a); box-shadow:0 6px 16px rgba(224,96,26,0.35);" onclick="joinPublicMatch()">🌐 Онлайн на 10 игроков</button>
-        <button class="btn btn-bot" id="btnBotMode" onclick="openBotDifficultyPicker()">🤖 Заезд с ботами (Одиночный режим)</button>
-        <button class="btn btn-secondary" onclick="switchScreen('screen-garage')">🚗 Гараж автовинилов</button>
+        <div class="mode-carousel" id="modeCarousel">
+            <div class="mode-card mode-friend" onclick="createFriendRoom()">
+                <div class="mode-icon">👥</div>
+                <div class="mode-title">С другом</div>
+                <div class="mode-desc">Комната до 10 чел. по приглашению</div>
+            </div>
+            <div class="mode-card mode-public" onclick="joinPublicMatch()">
+                <div class="mode-icon">🌐</div>
+                <div class="mode-title">Онлайн</div>
+                <div class="mode-desc">Матчмейкинг на 10 игроков</div>
+            </div>
+            <div class="mode-card mode-bot" onclick="openBotDifficultyPicker()">
+                <div class="mode-icon">🤖</div>
+                <div class="mode-title">С ботами</div>
+                <div class="mode-desc">Одиночный заезд, 3 уровня</div>
+            </div>
+        </div>
+        <div class="mode-hint">👉 Листай карточки, чтобы выбрать режим</div>
+        <button class="btn btn-secondary" style="margin-bottom:16px;" onclick="openJoinByCodeModal()">🔑 Подключиться по коду комнаты</button>
 
-        <div class="leaderboard-box">
+        <div class="leaderboard-box" style="margin-bottom:76px;">
             <h2>🏆 Таблица лидеров</h2>
             <div id="leaderboard-list"></div>
+        </div>
+
+        <!-- Гараж как нижний док в виде гаражных ворот -->
+        <div class="garage-dock" onclick="switchScreen('screen-garage')">
+            <div class="garage-dock-doors">
+                <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="garage-dock-label">🚗 Гараж автовинилов</div>
         </div>
     </div>
 
@@ -365,6 +429,13 @@
         <h1 id="matchmaking-title">Комната Друзей</h1>
         <div class="subtitle" id="room-id-display">Подключение к серверу…</div>
         <div class="subtitle room-code" id="room-code-display" style="display:none;"></div>
+        <div class="sub-alert-box" id="friend-help-box" style="display:none;">
+            Отправь другу ссылку или код комнаты выше. Друг должен открыть ссылку прямо в Telegram
+            (не в обычном браузере) и нажать «Открыть» — тогда он автоматически попадёт в эту комнату.
+            Если ссылка не сработала — пусть введёт код комнаты вручную через кнопку
+            «🔑 Подключиться по коду» в главном меню.
+            <button class="btn-secondary" style="padding: 6px 10px; font-size: 11px; width:100%; border-radius:8px; margin-top:8px;" onclick="shareInviteLink(currentRoomId)">📤 Отправить ссылку ещё раз</button>
+        </div>
 
         <div class="room-container">
             <div style="font-size:12px; font-weight:bold; color:var(--text-muted); margin-bottom:8px;">Игроки в комнате (макс. 10):</div>
@@ -503,7 +574,7 @@
         let myReady = false;
         let isHost = false;
         let currentRoomId = null;
-        let currentMode = 'friend'; // 'friend' | 'public'
+        let currentMode = 'bot'; // 'bot' | 'friend' | 'public'
 
         function refreshLeaderboardUI() {
             let myRecord = realUsersRating.find(u => u.name === username);
@@ -541,23 +612,54 @@
                 dark: `hsl(${hue} 45% 18%)`
             };
         }
+
+        // Силуэты кузова по типу — у всех один viewBox (0 0 120 70), поэтому на экране
+        // они всегда одного размера, меняется только форма.
+        const BODY_SHAPES = {
+            city:   'M12,52 Q10,36 27,32 L37,18 Q44,12 58,12 L70,12 Q80,12 86,19 L98,31 Q112,34 112,46 L112,52 Q112,55 107,55 L17,55 Q12,55 12,52 Z',
+            sport:  'M10,50 Q8,32 30,28 L40,14 Q46,8 60,8 L78,8 Q90,8 96,18 L108,30 Q114,34 114,44 L114,50 Q114,54 108,54 L14,54 Q10,54 10,50 Z',
+            van:    'M10,53 L10,24 Q10,13 23,13 L95,13 Q110,13 110,27 L110,49 Q110,53 105,53 L15,53 Q10,53 10,53 Z',
+            police: 'M10,50 Q8,34 28,30 L38,16 Q44,10 58,10 L76,10 Q88,10 94,19 L106,30 Q114,33 114,44 L114,50 Q114,54 108,54 L14,54 Q10,54 10,50 Z',
+            rescue: 'M10,52 L10,26 Q10,16 24,16 L60,16 L72,16 Q88,16 94,26 L108,36 Q114,39 114,46 L114,52 Q114,55 108,55 L14,55 Q10,55 10,52 Z',
+        };
+        const WINDOW_SHAPES = {
+            city:   ['M44,18 L58,14 L58,32 L40,32 Z', 'M64,14 L82,19 L86,32 L64,32 Z'],
+            sport:  ['M42,16 L58,14 L58,28 L38,28 Z', 'M66,14 L84,18 L88,28 L66,28 Z'],
+            van:    ['M18,18 L36,18 L36,32 L18,32 Z', 'M40,18 L60,18 L60,32 L40,32 Z', 'M64,18 L84,18 L84,32 L64,32 Z', 'M88,20 L102,24 L102,32 L88,32 Z'],
+            police: ['M42,18 L58,12 L58,30 L38,30 Z', 'M64,12 L82,17 L86,30 L64,30 Z'],
+            rescue: ['M26,20 L46,20 L46,34 L26,34 Z', 'M64,20 L92,26 L94,34 L64,34 Z'],
+        };
+
         function carSVG(car, size) {
             const { primary, secondary, dark } = carColors(car.id);
             const gradId = `carGrad${car.id}`;
+            const type = car.bodyType || 'sport';
+            const bodyPath = BODY_SHAPES[type] || BODY_SHAPES.sport;
+            const windows = (WINDOW_SHAPES[type] || WINDOW_SHAPES.sport).map(d => `<path d="${d}" fill="rgba(190,225,255,0.55)"/>`).join('');
             const hasSpoiler = car.price >= 2000;
             const hasStripe = car.price >= 600;
             const hasFlames = car.price >= 5000;
             const hasNeonRim = car.price >= 8000;
+
+            let roofAddon = '';
+            if (type === 'police') {
+                roofAddon = `<rect x="52" y="6" width="20" height="6" rx="1.5" fill="#111"/><rect x="52" y="6" width="10" height="6" fill="#e53935"/><rect x="62" y="6" width="10" height="6" fill="#1e88e5"/>`;
+            } else if (type === 'rescue') {
+                roofAddon = `<circle cx="40" cy="12" r="5" fill="#ffca28"/><rect x="36" y="12" width="8" height="5" fill="#ffca28"/>`;
+            } else if (type === 'city' && hasStripe) {
+                roofAddon = '';
+            }
+
             return `<svg width="${size}" height="${size}" viewBox="0 0 120 70" xmlns="http://www.w3.org/2000/svg">
                 <defs><linearGradient id="${gradId}" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stop-color="${secondary}"/><stop offset="100%" stop-color="${primary}"/>
                 </linearGradient></defs>
                 <ellipse cx="60" cy="61" rx="48" ry="4" fill="rgba(0,0,0,0.22)"/>
-                <path d="M10,50 Q8,32 30,28 L40,14 Q46,8 60,8 L78,8 Q90,8 96,18 L108,30 Q114,34 114,44 L114,50 Q114,54 108,54 L14,54 Q10,54 10,50 Z" fill="url(#${gradId})" stroke="${dark}" stroke-width="2"/>
+                <path d="${bodyPath}" fill="url(#${gradId})" stroke="${dark}" stroke-width="2"/>
                 ${hasStripe ? `<rect x="47" y="8" width="9" height="46" fill="rgba(255,255,255,0.5)" transform="skewX(-8)"/>` : ''}
                 ${hasFlames ? `<path d="M16,44 Q22,36 18,30 Q28,34 26,42 Q34,36 30,48 Z" fill="#ffd600" opacity="0.85"/><path d="M16,44 Q20,40 18,35 Q24,38 23,44 Z" fill="#ff5722"/>` : ''}
-                <path d="M42,16 L58,14 L58,28 L38,28 Z" fill="rgba(190,225,255,0.55)"/>
-                <path d="M66,14 L84,18 L88,28 L66,28 Z" fill="rgba(190,225,255,0.55)"/>
+                ${windows}
+                ${roofAddon}
                 ${hasSpoiler ? `<rect x="12" y="16" width="20" height="4" fill="${dark}"/><rect x="12" y="12" width="4" height="10" fill="${dark}"/><rect x="28" y="12" width="4" height="10" fill="${dark}"/>` : ''}
                 <circle cx="34" cy="54" r="10" fill="#1a1a1a"/><circle cx="34" cy="54" r="4" fill="${hasNeonRim ? '#ff1744' : '#ccc'}"/>
                 <circle cx="94" cy="54" r="10" fill="#1a1a1a"/><circle cx="94" cy="54" r="4" fill="${hasNeonRim ? '#ff1744' : '#ccc'}"/>
@@ -566,30 +668,30 @@
         }
 
         const carsDatabase = [
-            { id: 0, icon: '🚗', name: 'Сток Городской', price: 0 },
-            { id: 1, icon: '🏎️', name: 'Спорт Трек', price: 50 },
-            { id: 2, icon: '🚐', name: 'Вэн Стейдж', price: 120 },
-            { id: 3, icon: '🚓', name: 'Шериф Мускул', price: 300 },
-            { id: 4, icon: '🚒', name: 'Турбо Спасатель', price: 550 },
-            { id: 5, icon: '🛸', name: 'НЛО Прикол', price: 800 },
-            { id: 6, icon: '🎨', image: '', name: 'Кастом-Шаблон #1', price: 1500 },
-            { id: 7, icon: '💎', image: '', name: 'Кастом-Шаблон #2', price: 2000 },
-            { id: 8, icon: '🔥', image: '', name: 'Кастом-Шаблон #3', price: 2500 },
-            { id: 9, icon: '⚡', image: '', name: 'Кастом-Шаблон #4', price: 3000 },
-            { id: 10, icon: '👾', image: '', name: 'Кастом-Шаблон #5', price: 3500 },
-            { id: 11, icon: '👑', image: '', name: 'Кастом-Шаблон #6', price: 4000 },
-            { id: 12, icon: '🌀', image: '', name: 'Кастом-Шаблон #7', price: 4500 },
-            { id: 13, icon: '🪐', image: '', name: 'Кастом-Шаблон #8', price: 5000 },
-            { id: 14, icon: '📸', image: '', name: 'Кастом-Шаблон #9', price: 5800 },
-            { id: 15, icon: '📸', image: '', name: 'Кастом-Шаблон #10', price: 6400 },
-            { id: 16, icon: '📸', image: '', name: 'Кастом-Шаблон #11', price: 7000 },
-            { id: 17, icon: '📸', image: '', name: 'Кастом-Шаблон #12', price: 7600 },
-            { id: 18, icon: '📸', image: '', name: 'Кастом-Шаблон #13', price: 8200 },
-            { id: 19, icon: '📸', image: '', name: 'Кастом-Шаблон #14', price: 8800 },
-            { id: 20, icon: '📸', image: '', name: 'Кастом-Шаблон #15', price: 9200 },
-            { id: 21, icon: '📸', image: '', name: 'Кастом-Шаблон #16', price: 9500 },
-            { id: 22, icon: '📸', image: '', name: 'Кастом-Шаблон #17', price: 9800 },
-            { id: 23, icon: '📸', image: '', name: 'Кастом-Шаблон #18', price: 10000 }
+            { id: 0, bodyType: 'city',   name: 'Сток Городской', price: 0 },
+            { id: 1, bodyType: 'sport',  name: 'Спорт Трек', price: 50 },
+            { id: 2, bodyType: 'van',    name: 'Вэн Стейдж', price: 120 },
+            { id: 3, bodyType: 'police', name: 'Шериф Мускул', price: 300 },
+            { id: 4, bodyType: 'rescue', name: 'Турбо Спасатель', price: 550 },
+            { id: 5, bodyType: 'sport',  name: 'НЛО Прикол', price: 800 },
+            { id: 6, bodyType: 'sport', name: 'Кастом-Шаблон #1', price: 1500 },
+            { id: 7, bodyType: 'sport', name: 'Кастом-Шаблон #2', price: 2000 },
+            { id: 8, bodyType: 'sport', name: 'Кастом-Шаблон #3', price: 2500 },
+            { id: 9, bodyType: 'sport', name: 'Кастом-Шаблон #4', price: 3000 },
+            { id: 10, bodyType: 'sport', name: 'Кастом-Шаблон #5', price: 3500 },
+            { id: 11, bodyType: 'sport', name: 'Кастом-Шаблон #6', price: 4000 },
+            { id: 12, bodyType: 'sport', name: 'Кастом-Шаблон #7', price: 4500 },
+            { id: 13, bodyType: 'sport', name: 'Кастом-Шаблон #8', price: 5000 },
+            { id: 14, bodyType: 'sport', name: 'Кастом-Шаблон #9', price: 5800 },
+            { id: 15, bodyType: 'sport', name: 'Кастом-Шаблон #10', price: 6400 },
+            { id: 16, bodyType: 'sport', name: 'Кастом-Шаблон #11', price: 7000 },
+            { id: 17, bodyType: 'sport', name: 'Кастом-Шаблон #12', price: 7600 },
+            { id: 18, bodyType: 'sport', name: 'Кастом-Шаблон #13', price: 8200 },
+            { id: 19, bodyType: 'sport', name: 'Кастом-Шаблон #14', price: 8800 },
+            { id: 20, bodyType: 'sport', name: 'Кастом-Шаблон #15', price: 9200 },
+            { id: 21, bodyType: 'sport', name: 'Кастом-Шаблон #16', price: 9500 },
+            { id: 22, bodyType: 'sport', name: 'Кастом-Шаблон #17', price: 9800 },
+            { id: 23, bodyType: 'sport', name: 'Кастом-Шаблон #18', price: 10000 }
         ];
 
         let chosenCar = carsDatabase[0];
@@ -733,18 +835,31 @@
         // =========================================================================================
         let socket = null;
         let wsReconnectTimer = null;
+        let pendingSocketAction = null; // отправится автоматически, как только соединение реально откроется
 
-        function connectSocket() {
+        function connectSocket(onOpenAction) {
+            if (onOpenAction) pendingSocketAction = onOpenAction;
+            if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return;
+
+            if (!WS_URL || WS_URL.includes('your-backend.example.com')) {
+                tg.showAlert("Backend не настроен: замените WS_URL в коде на адрес вашего сервера (wss://...).");
+                return;
+            }
+
             try {
                 socket = new WebSocket(WS_URL);
             } catch (e) {
                 console.error('WS connect failed', e);
+                tg.showAlert("Не удалось создать WebSocket-соединение. Проверьте WS_URL.");
                 return;
             }
-            socket.onopen = () => { console.log('WS connected'); };
+            socket.onopen = () => {
+                console.log('WS connected');
+                if (pendingSocketAction) { wsSend(pendingSocketAction); pendingSocketAction = null; }
+            };
             socket.onclose = () => {
                 console.log('WS closed, retry in 2s');
-                wsReconnectTimer = setTimeout(connectSocket, 2000);
+                wsReconnectTimer = setTimeout(() => connectSocket(), 2000);
             };
             socket.onerror = (e) => console.error('WS error', e);
             socket.onmessage = (evt) => {
@@ -757,9 +872,12 @@
         function wsSend(obj) {
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify(obj));
+            } else if (socket && socket.readyState === WebSocket.CONNECTING) {
+                // соединение ещё устанавливается (например, Render "просыпается") — отправим, как только откроется
+                pendingSocketAction = obj;
             } else {
                 console.warn('WS not open, message dropped', obj);
-                tg.showAlert("Нет связи с сервером. Проверьте подключение.");
+                connectSocket(obj);
             }
         }
 
@@ -823,6 +941,27 @@
             tg.openTelegramLink(inviteLink);
         }
 
+        // Запасной способ подключения к комнате, если deep-link не сработал
+        // (например, у Mini App не настроен короткий адрес "app" в @BotFather).
+        function openJoinByCodeModal() {
+            if (!guardSubscribed()) return;
+            document.getElementById('joinCodeInput').value = '';
+            document.getElementById('joinCodeModal').style.display = 'flex';
+        }
+        function closeJoinByCodeModal() { document.getElementById('joinCodeModal').style.display = 'none'; }
+        function submitJoinByCode() {
+            const roomId = document.getElementById('joinCodeInput').value.trim();
+            if (!/^\d{4,6}$/.test(roomId)) { tg.showAlert('Введите корректный код комнаты (цифры).'); return; }
+            closeJoinByCodeModal();
+            currentMode = 'friend';
+            myReady = false; isHost = false;
+            document.getElementById('matchmaking-title').innerText = 'Комната Друзей';
+            document.getElementById('room-code-display').style.display = 'block';
+            switchScreen('screen-matchmaking');
+            if (!socket || socket.readyState !== WebSocket.OPEN) connectSocket();
+            setTimeout(() => wsSend({ type: 'join_room', roomId, name: username, car: chosenCar, userId }), 300);
+        }
+
         // ---------------------------------------------------------------------------------
         // РЕЖИМ "ОНЛАЙН НА 10 ИГРОКОВ" — публичный матчмейкинг через сервер
         // ---------------------------------------------------------------------------------
@@ -865,6 +1004,7 @@
             });
             document.getElementById('room-id-display').innerText = `Игроков в комнате: ${roomPlayers.length} / 10`;
             if (currentRoomId) document.getElementById('room-code-display').innerText = `КОД: ${currentRoomId}`;
+            document.getElementById('friend-help-box').style.display = (currentMode === 'friend') ? 'block' : 'none';
 
             const allReady = roomPlayers.length >= 2 && roomPlayers.every(p => p.ready);
             document.getElementById('start-room-btn').style.display = (isHost && allReady) ? 'block' : 'none';
@@ -944,6 +1084,7 @@
         function startBotMode() {
             if (!guardSubscribed()) return;
             isBotMode = true;
+            currentMode = 'bot';
             const botNames = { easy: ['Bot_Novice', 'Bot_Slowpoke', 'Bot_Cruiser'], medium: ['Bot_Turbo', 'Bot_Neon', 'Bot_Street'], hard: ['Bot_Apex', 'Bot_Overdrive', 'Bot_Reaper'] };
             const names = botNames[botDifficulty];
             roomPlayers = [
