@@ -161,6 +161,11 @@
 </head>
 <body>
 
+    <!-- АУДИО ТЕГИ ДЛЯ ИГРЫ -->
+    <!-- Вставь сюда ссылки на свои звуки вместо заглушек -->
+    <audio id="sound-bg" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+    <audio id="sound-rev" src="https://actions.google.com/sounds/v1/transportation/car_engine_revs.ogg"></audio>
+
     <div class="modal-overlay" id="donateModal">
         <div class="modal-card">
             <h2 style="text-align:center; margin-bottom:16px;">Магазин Монет 💰</h2>
@@ -503,6 +508,15 @@
             document.getElementById(id).classList.add('active');
             if(id === 'screen-garage') renderGarage();
             if(id === 'screen-menu') refreshLeaderboardUI();
+            
+            // Останавливаем музыку, если выходим в меню или лобби
+            if(id !== 'screen-game') {
+                let bgMusic = document.getElementById('sound-bg');
+                if(bgMusic) {
+                    bgMusic.pause();
+                    bgMusic.currentTime = 0;
+                }
+            }
         }
 
         function renderGarage() {
@@ -577,6 +591,9 @@
             const yellow = document.getElementById('light-yellow');
             const green = document.getElementById('light-green');
 
+            // Включаем музыку (браузер разрешит, так как был клик от юзера перед этим)
+            try { document.getElementById('sound-bg').play(); } catch(e) {}
+
             setTimeout(() => { red.classList.add('active'); }, 300);
             setTimeout(() => { yellow.classList.add('active'); }, 900);
             setTimeout(() => {
@@ -592,6 +609,14 @@
             if(!raceStarted) return;
             let me = activeRacers.find(r => r.isMe);
             if(!me) return;
+            
+            // Воспроизводим звук мотора
+            try {
+                let rev = document.getElementById('sound-rev');
+                rev.currentTime = 0;
+                rev.play();
+            } catch(e) {}
+
             if(isInDrift) { playerSpeed -= 1; return; }
             playerSpeed += 12;
             if(playerSpeed > 260) playerSpeed = 260;
@@ -672,6 +697,10 @@
             gameTicker = null;
             let me = activeRacers.find(r => r.isMe);
             if(me) me.element.classList.remove('shaking');
+            
+            // Выключаем музыку при финише
+            try { document.getElementById('sound-bg').pause(); } catch(e) {}
+
             switchScreen('screen-results');
 
             activeRacers.sort((a,b) => b.distance - a.distance);
