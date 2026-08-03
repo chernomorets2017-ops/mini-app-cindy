@@ -75,8 +75,26 @@
             animation: rotateGlow 6s linear infinite;
         }
         @keyframes rotateGlow { to { transform: rotate(360deg); } }
-        .car-render-zone { width: 74px; height: 74px; display: flex; align-items: center; justify-content: center; font-size: 52px; background-position: center; background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 4px 6px rgba(20,20,30,0.15)); z-index: 1; }
+        .car-render-zone { width: 74px; height: 74px; display: flex; align-items: center; justify-content: center; font-size: 46px; line-height: 1; overflow: hidden; background-position: center; background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 4px 6px rgba(20,20,30,0.15)); z-index: 1; }
         .car-name { font-weight: 800; letter-spacing: 0.5px; z-index: 1; margin-top: 4px; }
+
+        /* Гараж — более выразительная витрина: тёмная карточка со свечением и бейджем редкости */
+        .garage-showcase {
+            min-height: 168px; padding: 22px 18px;
+            background: radial-gradient(circle at 50% 30%, #262a35 0%, #14161d 75%);
+            border: 1px solid #2a2d38;
+            box-shadow: 0 14px 30px rgba(20,20,30,0.28), inset 0 0 40px rgba(255,23,68,0.08);
+        }
+        .garage-showcase .car-name { color: #fff; font-size: 17px; text-shadow: 0 0 10px rgba(255,255,255,0.15); }
+        .car-render-zone-lg { width: 92px; height: 92px; font-size: 60px; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.5)); }
+        .garage-rarity-badge {
+            position: absolute; top: 14px; left: 14px; z-index: 2; font-size: 9px; font-weight: 900; letter-spacing: 1px;
+            padding: 4px 10px; border-radius: 20px; text-transform: uppercase; color: #fff;
+            background: linear-gradient(135deg, #6b7280, #4b5563); box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .garage-rarity-badge.rare { background: linear-gradient(135deg, #2196f3, #1565c0); }
+        .garage-rarity-badge.epic { background: linear-gradient(135deg, #9a6bff, #6a3dd6); }
+        .garage-rarity-badge.legendary { background: linear-gradient(135deg, #ffd600, #ff8f00); color: #241900; }
 
         .leaderboard-box {
             background: linear-gradient(160deg, var(--surface-color-2), var(--surface-color));
@@ -94,7 +112,7 @@
         }
         .mode-carousel::-webkit-scrollbar { display: none; }
         .mode-card {
-            flex: 0 0 74%; scroll-snap-align: center; border-radius: 20px; padding: 16px;
+            flex: 0 0 74%; scroll-snap-align: center; border-radius: 30px; padding: 16px;
             display: flex; flex-direction: column; gap: 4px; cursor: pointer; color: #fff;
             box-shadow: 0 10px 22px rgba(20,20,30,0.14); border: 1px solid rgba(255,255,255,0.12);
             min-height: 128px; box-sizing: border-box; overflow: hidden; justify-content: center;
@@ -126,7 +144,7 @@
 
         .btn {
             background: linear-gradient(180deg, #ff2e55, var(--accent-color) 60%, var(--accent-color-dark));
-            color: white; border: 1px solid rgba(255,255,255,0.15); padding: 15px; border-radius: 14px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+            color: white; border: 1px solid rgba(255,255,255,0.15); padding: 15px; border-radius: 30px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
             cursor: pointer; width: 100%; margin-bottom: 8px; box-shadow: 0 6px 16px rgba(255,23,68,0.35), inset 0 1px 0 rgba(255,255,255,0.25);
             text-align: center; transition: transform 0.05s;
         }
@@ -134,7 +152,7 @@
         .btn-secondary { background: linear-gradient(180deg, #f1f2f5, #e6e8ec); color: #333; border: 1px solid var(--border-color); box-shadow: none; }
         .btn-friend { background: linear-gradient(180deg, #8a5cff, #6a3dd6); box-shadow: 0 6px 16px rgba(124,77,255,0.35), inset 0 1px 0 rgba(255,255,255,0.2); color: white; }
         .btn-bot { background: linear-gradient(180deg, #00d4e0, #009aa8); box-shadow: 0 6px 16px rgba(0,172,193,0.35), inset 0 1px 0 rgba(255,255,255,0.2); color: white; }
-        .btn-donate { background: linear-gradient(180deg, #34e07a, #1ea855); font-size: 12px; padding: 9px 14px; border-radius: 10px; color: #06210f; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(30,168,85,0.35); }
+        .btn-donate { background: linear-gradient(180deg, #34e07a, #1ea855); font-size: 12px; padding: 9px 14px; border-radius: 20px; color: #06210f; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(30,168,85,0.35); }
         .btn:disabled, .btn.disabled { opacity: 0.4; filter: grayscale(0.6); pointer-events: none; }
 
         .sound-toggle {
@@ -452,8 +470,9 @@
     <div id="screen-garage" class="screen">
         <h1>Выбор стиля</h1>
         <div class="subtitle">Кастомные дизайны и автовинилы</div>
-        <div class="main-card">
-            <div id="garage-car-render" class="car-render-zone">🚗</div>
+        <div class="main-card garage-showcase">
+            <div class="garage-rarity-badge" id="garage-rarity-badge">БАЗОВАЯ</div>
+            <div id="garage-car-render" class="car-render-zone car-render-zone-lg">🚗</div>
             <div class="car-name" id="garage-car-name">Сток Городской</div>
         </div>
         <button id="garage-action-btn" class="btn" onclick="handleGarageAction()">Выбрать эту тачку</button>
@@ -577,24 +596,42 @@
         let currentRoomId = null;
         let currentMode = 'bot'; // 'bot' | 'friend' | 'public'
 
-        function refreshLeaderboardUI() {
-            let myRecord = realUsersRating.find(u => u.name === username);
-            if (!myRecord) {
-                myRecord = { name: username, score: parseInt(localStorage.getItem('ccd_player_score')) || 0 };
-                realUsersRating.push(myRecord);
-            }
-            realUsersRating.sort((a,b) => b.score - a.score);
+        // Таблица лидеров — общая для всех игроков (сервер), а не локальная per-device.
+        // Если backend недоступен — показываем локальный кэш, чтобы экран не был пустым.
+        async function refreshLeaderboardUI() {
             const listContainer = document.getElementById('leaderboard-list');
-            if (listContainer) {
-                listContainer.innerHTML = '';
-                realUsersRating.slice(0, 10).forEach((user, index) => {
-                    const row = document.createElement('div');
-                    row.className = `leader-row ${user.name === username ? 'player-highlight' : ''}`;
-                    row.innerHTML = `<span>${index + 1}. ${user.name}</span><span>${user.score} м.</span>`;
-                    listContainer.appendChild(row);
-                });
+            if (!listContainer) return;
+            try {
+                const resp = await fetch(`${API_BASE}/api/leaderboard/top`);
+                if (!resp.ok) throw new Error('bad status ' + resp.status);
+                const data = await resp.json(); // { top: [{id, name, distance}] }
+                renderLeaderboardRows(listContainer, data.top.map(r => ({ id: r.id, name: r.name, score: r.distance })));
+            } catch (err) {
+                console.warn('leaderboard fetch failed, showing local cache', err);
+                let myRecord = realUsersRating.find(u => u.name === username);
+                if (!myRecord) {
+                    myRecord = { name: username, score: parseInt(localStorage.getItem('ccd_player_score')) || 0 };
+                    realUsersRating.push(myRecord);
+                }
+                realUsersRating.sort((a, b) => b.score - a.score);
+                renderLeaderboardRows(listContainer, realUsersRating.slice(0, 10));
+                localStorage.setItem('ccd_real_rating', JSON.stringify(realUsersRating));
             }
-            localStorage.setItem('ccd_real_rating', JSON.stringify(realUsersRating));
+        }
+
+        function renderLeaderboardRows(container, rows) {
+            container.innerHTML = '';
+            if (!rows.length) {
+                container.innerHTML = '<div class="leader-row">Пока никто не финишировал — будь первым!</div>';
+                return;
+            }
+            rows.forEach((row, index) => {
+                const isMe = row.id ? row.id === userId : row.name === username;
+                const el = document.createElement('div');
+                el.className = `leader-row ${isMe ? 'player-highlight' : ''}`;
+                el.innerHTML = `<span>${index + 1}. ${row.name}</span><span>${row.score} м.</span>`;
+                container.appendChild(el);
+            });
         }
 
         document.getElementById('coin-balance').innerText = userCoins;
@@ -678,8 +715,15 @@
         // Стикеры машин — эмодзи-набор (как попросили, без ручной отрисовки).
         // Если хотите свои картинки — положите файлы car_0.png ... car_23.png в папку "cars"
         // рядом с index.html: они подставятся вместо эмодзи автоматически (см. renderCarVisual).
-        const CAR_EMOJIS = ['🚗','🚕','🚐','🏎️','🚓','💩','🚎','🚌','🚒','🛻','🚙','🚛','🛺','🛸','🏍️','🛵','🚲','🦽','🚀','🚂','🛴','🦼'];
-        function carEmoji(car) { return CAR_EMOJIS[car.id % CAR_EMOJIS.length]; }
+        // Стикеры машин — эмодзи-набор, один на каждую машину (id 0-23), без повторов.
+        // Первые 6 подобраны по смыслу названия (город/спорт/фургон/полиция/спасатель/такси).
+        // Если хотите свои картинки — положите файлы car_0.png ... car_23.png в папку "cars"
+        // рядом с index.html: они подставятся вместо эмодзи автоматически (см. renderCarVisual).
+        const CAR_EMOJIS = [
+            '🚗','🏎️','🚐','🚓','🚒','🚕', // 0-5: город, спорт, вэн, полиция, спасатель, такси
+            '🚎','🚌','🛻','🚙','🚛','🛺','🛸','🏍️','🛵','🚲','🦽','🚀','🚂','🛴','🦼','💩','🚁','🛶' // 6-23: кастом-шаблоны
+        ];
+        function carEmoji(car) { return CAR_EMOJIS[car.id] || CAR_EMOJIS[car.id % CAR_EMOJIS.length]; }
 
         const CAR_ASSETS_PATH = "cars";
         function renderCarVisual(car, size) {
@@ -1206,11 +1250,23 @@
             });
         }
 
+        function carRarity(price) {
+            if (price >= 8000) return { label: 'ЛЕГЕНДАРНАЯ', cls: 'legendary' };
+            if (price >= 4000) return { label: 'ЭПИЧЕСКАЯ', cls: 'epic' };
+            if (price >= 1200) return { label: 'РЕДКАЯ', cls: 'rare' };
+            return { label: 'БАЗОВАЯ', cls: '' };
+        }
+
         function selectCar(car) {
             let isOwned = ownedCars.includes(car.id);
             const renderZone = document.getElementById('garage-car-render');
-            renderZone.innerHTML = renderCarVisual(car, 74);
+            renderZone.innerHTML = renderCarVisual(car, 92);
             document.getElementById('garage-car-name').innerText = car.name;
+
+            const rarity = carRarity(car.price);
+            const badge = document.getElementById('garage-rarity-badge');
+            badge.innerText = rarity.label;
+            badge.className = 'garage-rarity-badge' + (rarity.cls ? ' ' + rarity.cls : '');
 
             const btn = document.getElementById('garage-action-btn');
             if (isOwned) {
@@ -1395,6 +1451,7 @@
                 localStorage.setItem('ccd_player_score', finalMeters);
                 let myRecord = realUsersRating.find(u => u.name === username);
                 if (myRecord) myRecord.score = finalMeters;
+                submitLeaderboardScore(finalMeters);
             }
 
             let coinsEarned = Math.max(5, Math.floor(finalMeters / 30) + (11 - myRank) * 2);
@@ -1405,6 +1462,19 @@
             document.getElementById('res-desc').innerText = `Заезд завершен! Пройдено дистанции: ${finalMeters} метров.`;
             document.getElementById('res-reward').innerText = `+${coinsEarned} 💰 монеток`;
             safePlay(myRank === 1 ? SFX.win : SFX.lose);
+        }
+
+        // Шлём новый личный рекорд на сервер, чтобы он был виден ВСЕМ игрокам, а не только на этом устройстве
+        async function submitLeaderboardScore(distance) {
+            try {
+                await fetch(`${API_BASE}/api/leaderboard/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ initData: tg.initData, distance })
+                });
+            } catch (err) {
+                console.warn('leaderboard submit failed (offline?)', err);
+            }
         }
 
         // ---------------------------------------------------------------------------------
