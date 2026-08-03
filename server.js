@@ -41,6 +41,7 @@ app.use(express.json());
 // -----------------------------------------------------------------------------
 const balances = new Map();   // userId -> coins
 const pendingInvoices = new Map(); // payload -> { userId, coinsAmount }
+const leaderboard = new Map(); // userId -> { name, distance } — общий рейтинг на всех, не per-device
 
 function getBalance(userId) { return balances.get(userId) || 0; }
 function addBalance(userId, amount) {
@@ -99,6 +100,29 @@ app.post('/api/balance', (req, res) => {
     const user = verifyInitData(req.body.initData);
     if (!user) return res.status(401).json({ error: 'invalid initData' });
     res.json({ coins: getBalance(user.id) });
+});
+
+// -----------------------------------------------------------------------------
+// 2b) ТАБЛИЦА ЛИДЕРОВ — общая на всех игроков (а не в localStorage каждого устройства)
+// -----------------------------------------------------------------------------
+app.post('/api/leaderboard/submit', (req, res) => {
+    const user = verifyInitData(req.body.initData);
+    if (!user) return res.status(401).json({ error: 'invalid initData' });
+    const distance = Math.max(0, Math.floor(Number(req.body.distance) || 0));
+    const name = user.username || user.first_name || `Гонщик_${user.id}`;
+    const existing = leaderboard.get(user.id);
+    if (!existing || distance > existing.distance) {
+        leaderboard.set(user.id, { name, distance });
+    }
+    res.json({ ok: true });
+});
+
+app.get('/api/leaderboard/top', (req, res) => {
+    const top = [...leaderboard.entries()]
+        .map(([id, v]) => ({ id, name: v.name, distance: v.distance }))
+        .sort((a, b) => b.distance - a.distance)
+        .slice(0, 20);
+    res.json({ top });
 });
 
 // -----------------------------------------------------------------------------
