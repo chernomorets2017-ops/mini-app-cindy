@@ -89,22 +89,23 @@
 
         /* Карусель режимов — свайп вместо стопки кнопок */
         .mode-carousel {
-            display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
-            padding: 4px 4px 10px 4px; margin-bottom: 4px; -webkit-overflow-scrolling: touch;
+            display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory;
+            padding: 4px 4px 14px 4px; margin-bottom: 0; -webkit-overflow-scrolling: touch; align-items: stretch;
         }
         .mode-carousel::-webkit-scrollbar { display: none; }
         .mode-card {
-            flex: 0 0 74%; scroll-snap-align: center; border-radius: 20px; padding: 18px 16px;
+            flex: 0 0 74%; scroll-snap-align: center; border-radius: 20px; padding: 16px;
             display: flex; flex-direction: column; gap: 4px; cursor: pointer; color: #fff;
             box-shadow: 0 10px 22px rgba(20,20,30,0.14); border: 1px solid rgba(255,255,255,0.12);
+            min-height: 128px; box-sizing: border-box; overflow: hidden; justify-content: center;
         }
         .mode-card.mode-friend { background: linear-gradient(150deg, #9a6bff, #6a3dd6); }
         .mode-card.mode-public { background: linear-gradient(150deg, #ff9a4d, #e0601a); }
         .mode-card.mode-bot { background: linear-gradient(150deg, #26d9e8, #00838f); }
-        .mode-icon { font-size: 30px; }
-        .mode-title { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
-        .mode-desc { font-size: 11px; opacity: 0.9; font-weight: 600; }
-        .mode-hint { text-align: center; font-size: 10px; color: var(--text-muted); margin-bottom: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mode-icon { font-size: 28px; line-height: 1; }
+        .mode-title { font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; }
+        .mode-desc { font-size: 11px; opacity: 0.95; font-weight: 600; line-height: 1.35; }
+        .mode-hint { text-align: center; font-size: 10px; color: var(--text-muted); margin: 4px 0 14px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
         /* Гараж — нижний закреплённый док в виде гаражных ворот */
         .garage-dock {
@@ -674,19 +675,20 @@
             </svg>`;
         }
 
-        // Папка с вашими картинками/стикерами машин. Положите файлы сюда с именами
-        // car_0.png ... car_23.png (по id машины, см. carsDatabase ниже) — они подхватятся
-        // автоматически. Прозрачный PNG/WebP, желательно все примерно одного соотношения
-        // сторон — на экране все равно принудительно приводятся к одному размеру.
-        // Если файла нет — показывается запасной SVG-силуэт, чтобы игра не выглядела пустой.
+        // Стикеры машин — эмодзи-набор (как попросили, без ручной отрисовки).
+        // Если хотите свои картинки — положите файлы car_0.png ... car_23.png в папку "cars"
+        // рядом с index.html: они подставятся вместо эмодзи автоматически (см. renderCarVisual).
+        const CAR_EMOJIS = ['🚗','🚕','🚐','🏎️','🚓','💩','🚎','🚌','🚒','🛻','🚙','🚛','🛺','🛸','🏍️','🛵','🚲','🦽','🚀','🚂','🛴','🦼'];
+        function carEmoji(car) { return CAR_EMOJIS[car.id % CAR_EMOJIS.length]; }
+
         const CAR_ASSETS_PATH = "cars";
         function renderCarVisual(car, size) {
-            const svgFallback = carSVG(car, size);
+            const emojiFallback = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:${Math.round(size * 0.62)}px; line-height:1;">${carEmoji(car)}</div>`;
             return `<div class="car-visual" style="width:${size}px;height:${size}px;position:relative;">
                 <img src="${CAR_ASSETS_PATH}/car_${car.id}.png" alt="${car.name}"
                      style="width:100%;height:100%;object-fit:contain;display:block;"
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <div style="display:none; width:100%; height:100%;">${svgFallback}</div>
+                <div style="display:none;">${emojiFallback}</div>
             </div>`;
         }
 
@@ -736,7 +738,7 @@
         //   -> bot.getChatMember(CHANNEL_ID, userId) -> статус member/administrator/creator = true
         // Ниже — реальный вызов этого эндпоинта (не имитация).
         // ---------------------------------------------------------------------------------
-        async function checkSubscriptionReal() {
+        async function checkSubscriptionReal(silent) {
             const banner = document.getElementById('sub-banner');
             try {
                 const resp = await fetch(`${API_BASE}/api/check-subscription`, {
@@ -749,14 +751,14 @@
                 isSubscribed = !!data.subscribed;
                 if (isSubscribed) {
                     banner.style.display = 'none';
-                    tg.showAlert("Подписка подтверждена!");
+                    if (!silent) tg.showAlert("Подписка подтверждена!");
                     fetchBalance();
-                } else {
+                } else if (!silent) {
                     tg.showAlert("Подписка не найдена. Подпишись на канал и попробуй снова.");
                 }
             } catch (err) {
                 console.error('subscription check failed', err);
-                tg.showAlert("Не удалось проверить подписку. Backend недоступен — проверьте API_BASE в коде клиента.");
+                if (!silent) tg.showAlert("Не удалось проверить подписку. Backend недоступен — проверьте API_BASE в коде клиента.");
             }
         }
 
@@ -811,7 +813,10 @@
             }
         }
 
-        // Баланс — источник истины ТОЛЬКО сервер (иначе легко подделать через localStorage)
+        // Сервер хранит только СУММУ реально купленных за деньги монет (нарастающим итогом).
+        // Локальный баланс — это игровые награды + уже "забранные" покупки. Поэтому при синхронизации
+        // мы ДОБАВЛЯЕМ новую разницу к локальному балансу, а не перезаписываем его — иначе каждый
+        // повторный вход стирал бы монеты, заработанные в гонках (баланс "сбрасывался").
         async function fetchBalance() {
             try {
                 const resp = await fetch(`${API_BASE}/api/balance`, {
@@ -820,10 +825,15 @@
                     body: JSON.stringify({ initData: tg.initData })
                 });
                 if (!resp.ok) throw new Error('balance fetch failed');
-                const data = await resp.json(); // { coins: number }
-                userCoins = data.coins;
-                localStorage.setItem('ccd_coins', userCoins); // кэш только для офлайн-отображения
-                document.getElementById('coin-balance').innerText = userCoins;
+                const data = await resp.json(); // { coins: number } — сумма всех оплаченных покупок на сервере
+                const alreadyClaimed = parseInt(localStorage.getItem('ccd_coins_claimed')) || 0;
+                const delta = data.coins - alreadyClaimed;
+                if (delta > 0) {
+                    userCoins += delta;
+                    localStorage.setItem('ccd_coins_claimed', data.coins);
+                    localStorage.setItem('ccd_coins', userCoins);
+                    document.getElementById('coin-balance').innerText = userCoins;
+                }
             } catch (err) {
                 console.warn('using cached balance, backend unreachable', err);
                 document.getElementById('coin-balance').innerText = userCoins;
@@ -1404,7 +1414,7 @@
         // ---------------------------------------------------------------------------------
         document.getElementById('menu-car-render').innerHTML = renderCarVisual(chosenCar, 74);
         document.getElementById('main-car-name').innerText = chosenCar.name;
-        checkSubscriptionReal();
+        checkSubscriptionReal(true);
         tryAutoJoinFromStartParam();
     </script>
 </body>
