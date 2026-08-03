@@ -515,7 +515,7 @@
         const API_BASE = "https://mini-app-cindy.onrender.com";      // СЕРВЕР: HTTPS API (Express)
         const WS_URL    = "wss://mini-app-cindy.onrender.com/ws";    // СЕРВЕР: WebSocket endpoint для комнат/мультиплеера
         const CHANNEL_URL = "https://t.me/mods_ccd";
-        const BOT_USERNAME = "ccdracegame_bot"; // ⚠️ ЗАМЕНИТЕ на реальный username вашего бота из @BotFather (без @)
+        const BOT_USERNAME = "ccdracegame_bot"; // username бота из @BotFather (без @)
 
         const tg = window.Telegram.WebApp;
         tg.ready(); tg.expand();
@@ -621,6 +621,7 @@
             van:    'M10,53 L10,24 Q10,13 23,13 L95,13 Q110,13 110,27 L110,49 Q110,53 105,53 L15,53 Q10,53 10,53 Z',
             police: 'M10,50 Q8,34 28,30 L38,16 Q44,10 58,10 L76,10 Q88,10 94,19 L106,30 Q114,33 114,44 L114,50 Q114,54 108,54 L14,54 Q10,54 10,50 Z',
             rescue: 'M10,52 L10,26 Q10,16 24,16 L60,16 L72,16 Q88,16 94,26 L108,36 Q114,39 114,46 L114,52 Q114,55 108,55 L14,55 Q10,55 10,52 Z',
+            taxi:   'M10,52 Q9,35 26,31 L36,17 Q42,11 56,11 L74,11 Q84,11 90,20 L100,31 Q113,34 113,46 L113,52 Q113,55 108,55 L15,55 Q10,55 10,52 Z',
         };
         const WINDOW_SHAPES = {
             city:   ['M44,18 L58,14 L58,32 L40,32 Z', 'M64,14 L82,19 L86,32 L64,32 Z'],
@@ -628,16 +629,21 @@
             van:    ['M18,18 L36,18 L36,32 L18,32 Z', 'M40,18 L60,18 L60,32 L40,32 Z', 'M64,18 L84,18 L84,32 L64,32 Z', 'M88,20 L102,24 L102,32 L88,32 Z'],
             police: ['M42,18 L58,12 L58,30 L38,30 Z', 'M64,12 L82,17 L86,30 L64,30 Z'],
             rescue: ['M26,20 L46,20 L46,34 L26,34 Z', 'M64,20 L92,26 L94,34 L64,34 Z'],
+            taxi:   ['M42,17 L56,11 L56,31 L38,31 Z', 'M62,11 L80,16 L84,31 L62,31 Z'],
         };
 
         function carSVG(car, size) {
-            const { primary, secondary, dark } = carColors(car.id);
-            const gradId = `carGrad${car.id}`;
             const type = car.bodyType || 'sport';
+            const isTaxi = type === 'taxi';
+            // Такси всегда классического жёлтого цвета с шашечками — не зависит от процедурного оттенка id
+            const { primary, secondary, dark } = isTaxi
+                ? { primary: '#ffb300', secondary: '#ffd54f', dark: '#5c4200' }
+                : carColors(car.id);
+            const gradId = `carGrad${car.id}`;
             const bodyPath = BODY_SHAPES[type] || BODY_SHAPES.sport;
             const windows = (WINDOW_SHAPES[type] || WINDOW_SHAPES.sport).map(d => `<path d="${d}" fill="rgba(190,225,255,0.55)"/>`).join('');
             const hasSpoiler = car.price >= 2000;
-            const hasStripe = car.price >= 600;
+            const hasStripe = car.price >= 600 && !isTaxi;
             const hasFlames = car.price >= 5000;
             const hasNeonRim = car.price >= 8000;
 
@@ -646,8 +652,8 @@
                 roofAddon = `<rect x="52" y="6" width="20" height="6" rx="1.5" fill="#111"/><rect x="52" y="6" width="10" height="6" fill="#e53935"/><rect x="62" y="6" width="10" height="6" fill="#1e88e5"/>`;
             } else if (type === 'rescue') {
                 roofAddon = `<circle cx="40" cy="12" r="5" fill="#ffca28"/><rect x="36" y="12" width="8" height="5" fill="#ffca28"/>`;
-            } else if (type === 'city' && hasStripe) {
-                roofAddon = '';
+            } else if (isTaxi) {
+                roofAddon = `<rect x="50" y="4" width="20" height="7" rx="2" fill="#111"/><rect x="52" y="5.5" width="16" height="4" fill="#ffd600"/>`;
             }
 
             return `<svg width="${size}" height="${size}" viewBox="0 0 120 70" xmlns="http://www.w3.org/2000/svg">
@@ -657,6 +663,7 @@
                 <ellipse cx="60" cy="61" rx="48" ry="4" fill="rgba(0,0,0,0.22)"/>
                 <path d="${bodyPath}" fill="url(#${gradId})" stroke="${dark}" stroke-width="2"/>
                 ${hasStripe ? `<rect x="47" y="8" width="9" height="46" fill="rgba(255,255,255,0.5)" transform="skewX(-8)"/>` : ''}
+                ${isTaxi ? `<g>${[0,1,2,3,4,5,6].map(i => `<rect x="${20 + i*12}" y="36" width="6" height="6" fill="${i % 2 === 0 ? '#111' : '#fff'}"/>`).join('')}</g>` : ''}
                 ${hasFlames ? `<path d="M16,44 Q22,36 18,30 Q28,34 26,42 Q34,36 30,48 Z" fill="#ffd600" opacity="0.85"/><path d="M16,44 Q20,40 18,35 Q24,38 23,44 Z" fill="#ff5722"/>` : ''}
                 ${windows}
                 ${roofAddon}
@@ -667,13 +674,29 @@
             </svg>`;
         }
 
+        // Папка с вашими картинками/стикерами машин. Положите файлы сюда с именами
+        // car_0.png ... car_23.png (по id машины, см. carsDatabase ниже) — они подхватятся
+        // автоматически. Прозрачный PNG/WebP, желательно все примерно одного соотношения
+        // сторон — на экране все равно принудительно приводятся к одному размеру.
+        // Если файла нет — показывается запасной SVG-силуэт, чтобы игра не выглядела пустой.
+        const CAR_ASSETS_PATH = "cars";
+        function renderCarVisual(car, size) {
+            const svgFallback = carSVG(car, size);
+            return `<div class="car-visual" style="width:${size}px;height:${size}px;position:relative;">
+                <img src="${CAR_ASSETS_PATH}/car_${car.id}.png" alt="${car.name}"
+                     style="width:100%;height:100%;object-fit:contain;display:block;"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div style="display:none; width:100%; height:100%;">${svgFallback}</div>
+            </div>`;
+        }
+
         const carsDatabase = [
             { id: 0, bodyType: 'city',   name: 'Сток Городской', price: 0 },
             { id: 1, bodyType: 'sport',  name: 'Спорт Трек', price: 50 },
             { id: 2, bodyType: 'van',    name: 'Вэн Стейдж', price: 120 },
             { id: 3, bodyType: 'police', name: 'Шериф Мускул', price: 300 },
             { id: 4, bodyType: 'rescue', name: 'Турбо Спасатель', price: 550 },
-            { id: 5, bodyType: 'sport',  name: 'НЛО Прикол', price: 800 },
+            { id: 5, bodyType: 'taxi',   name: 'Жёлтое Такси', price: 800 },
             { id: 6, bodyType: 'sport', name: 'Кастом-Шаблон #1', price: 1500 },
             { id: 7, bodyType: 'sport', name: 'Кастом-Шаблон #2', price: 2000 },
             { id: 8, bodyType: 'sport', name: 'Кастом-Шаблон #3', price: 2500 },
@@ -694,8 +717,8 @@
             { id: 23, bodyType: 'sport', name: 'Кастом-Шаблон #18', price: 10000 }
         ];
 
-        let chosenCar = carsDatabase[0];
-        let currentGarageCar = carsDatabase[0];
+        let chosenCar = carsDatabase[parseInt(localStorage.getItem('ccd_chosen_car_id'))] || carsDatabase[0];
+        let currentGarageCar = chosenCar;
         let playerSpeed = 0, playerDistance = 0;
         let gameTicker = null;
         let raceTimeLeft = 30.0;
@@ -1028,18 +1051,18 @@
         }
 
         const DIFFICULTY_PROFILES = {
-            easy:   { topSpeed: [130, 165], mistakeChance: 0.05, perfectStartChance: 0.10, badStartChance: 0.30, driftChance: 0.03, accelJitter: 6 },
-            medium: { topSpeed: [160, 205], mistakeChance: 0.03, perfectStartChance: 0.20, badStartChance: 0.15, driftChance: 0.02, accelJitter: 8 },
-            hard:   { topSpeed: [200, 250], mistakeChance: 0.015, perfectStartChance: 0.35, badStartChance: 0.05, driftChance: 0.015, accelJitter: 10 },
+            easy:   { topSpeed: [145, 180], mistakeChance: 0.045, perfectStartChance: 0.15, badStartChance: 0.22, driftChance: 0.025, accelJitter: 7.5, aggression: 0.15 },
+            medium: { topSpeed: [180, 222], mistakeChance: 0.02,  perfectStartChance: 0.32, badStartChance: 0.08, driftChance: 0.012, accelJitter: 9.5, aggression: 0.35 },
+            hard:   { topSpeed: [220, 262], mistakeChance: 0.008, perfectStartChance: 0.55, badStartChance: 0.02, driftChance: 0.007, accelJitter: 11.5, aggression: 0.6 },
         };
 
         function createBotAI(name, difficulty) {
             const profile = DIFFICULTY_PROFILES[difficulty];
             const topSpeed = profile.topSpeed[0] + Math.random() * (profile.topSpeed[1] - profile.topSpeed[0]);
             const startRoll = Math.random();
-            let startDelayFrames = 5 + Math.floor(Math.random() * 8); // "реакция" на старте
+            let startDelayFrames = 4 + Math.floor(Math.random() * 6); // "реакция" на старте
             if (startRoll < profile.perfectStartChance) startDelayFrames = 0;
-            else if (startRoll < profile.perfectStartChance + profile.badStartChance) startDelayFrames += 12;
+            else if (startRoll < profile.perfectStartChance + profile.badStartChance) startDelayFrames += 10;
             return {
                 name, difficulty, topSpeed, profile,
                 framesSinceStart: 0, startDelayFrames,
@@ -1048,7 +1071,7 @@
             };
         }
 
-        function stepBotAI(bot) {
+        function stepBotAI(bot, playerDistance) {
             bot.framesSinceStart++;
             if (bot.framesSinceStart < bot.startDelayFrames) return; // еще не тронулся — "реакция"
 
@@ -1061,19 +1084,25 @@
                 return;
             }
 
-            // случайный занос (ошибка бота)
+            // случайный занос (ошибка бота) — реже, чем раньше, особенно на higher-уровнях
             if (Math.random() < bot.profile.driftChance) {
                 bot.inDrift = true;
-                bot.driftFrames = 10 + Math.floor(Math.random() * 15);
+                bot.driftFrames = 8 + Math.floor(Math.random() * 12);
             }
 
             // случайное ускорение/замедление + шанс "грубой ошибки" (резкий сброс газа)
-            let delta = (Math.random() * bot.profile.accelJitter) - (bot.profile.accelJitter * 0.35);
-            if (Math.random() < bot.profile.mistakeChance) delta -= 25; // ошибся, отпустил газ
+            let delta = (Math.random() * bot.profile.accelJitter) - (bot.profile.accelJitter * 0.3);
+            if (Math.random() < bot.profile.mistakeChance) delta -= 20; // ошибся, отпустил газ
+
+            // Агрессия: если бот отстаёт от игрока — подхлёстывает себя (rubber-band), чтобы не давать
+            // легко оторваться на высоких сложностях. Если бот впереди — просто жмёт свой темп.
+            if (typeof playerDistance === 'number' && playerDistance - bot.distance > 15) {
+                delta += bot.profile.aggression * 6;
+            }
 
             bot.speed += delta;
             if (bot.speed > bot.topSpeed) bot.speed = bot.topSpeed;
-            if (bot.speed < 20) bot.speed = 20;
+            if (bot.speed < 25) bot.speed = 25;
 
             bot.distance += bot.speed * 0.04;
         }
@@ -1125,7 +1154,7 @@
                 node.style.top = `${topPercent}%`;
                 node.style.left = '20px';
 
-                let skinHtml = `<div class="racer-skin-slot-horiz">${carSVG(p.car || carsDatabase[0], 36)}</div>`;
+                let skinHtml = `<div class="racer-skin-slot-horiz">${renderCarVisual(p.car || carsDatabase[0], 36)}</div>`;
                 node.innerHTML = skinHtml + `<span class="racer-tag-horiz">${p.name}</span>`;
                 field.appendChild(node);
 
@@ -1144,7 +1173,7 @@
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            if (id === 'screen-garage') renderGarage();
+            if (id === 'screen-garage') selectCar(currentGarageCar);
             if (id === 'screen-menu') { refreshLeaderboardUI(); playMenuMusic(); }
         }
 
@@ -1155,7 +1184,7 @@
                 let isOwned = ownedCars.includes(car.id);
                 card.className = `car-card ${currentGarageCar.id === car.id ? 'active-selection' : ''}`;
 
-                card.innerHTML = carSVG(car, 40);
+                card.innerHTML = renderCarVisual(car, 40);
 
                 let pTag = document.createElement('div');
                 pTag.style.fontSize = '10px'; pTag.style.fontWeight = 'bold'; pTag.style.color = 'var(--speed-color)';
@@ -1170,7 +1199,7 @@
         function selectCar(car) {
             let isOwned = ownedCars.includes(car.id);
             const renderZone = document.getElementById('garage-car-render');
-            renderZone.innerHTML = carSVG(car, 74);
+            renderZone.innerHTML = renderCarVisual(car, 74);
             document.getElementById('garage-car-name').innerText = car.name;
 
             const btn = document.getElementById('garage-action-btn');
@@ -1186,8 +1215,9 @@
             let isOwned = ownedCars.includes(currentGarageCar.id);
             if (isOwned) {
                 chosenCar = currentGarageCar;
+                localStorage.setItem('ccd_chosen_car_id', chosenCar.id);
                 const menuRender = document.getElementById('menu-car-render');
-                menuRender.innerHTML = carSVG(chosenCar, 74);
+                menuRender.innerHTML = renderCarVisual(chosenCar, 74);
                 document.getElementById('main-car-name').innerText = chosenCar.name;
                 switchScreen('screen-menu');
             } else {
@@ -1282,7 +1312,7 @@
                     racer.speed = playerSpeed;
                     racer.distance = playerDistance;
                 } else if (racer.isBot && isBotSession) {
-                    stepBotAI(racer.bot);
+                    stepBotAI(racer.bot, playerDistance);
                     racer.speed = racer.bot.speed;
                     racer.distance = racer.bot.distance;
                     if (racer.bot.inDrift) racer.element.classList.add('shaking');
@@ -1368,9 +1398,12 @@
         }
 
         // ---------------------------------------------------------------------------------
-        // Инициализация: пробуем автоматически проверить подписку и подключиться к комнате
-        // по ссылке-приглашению (если приложение открыто через startapp=room_ID)
+        // Инициализация: рендерим сохранённую/дефолтную машину на главном экране,
+        // проверяем подписку и пробуем подключиться к комнате по ссылке-приглашению
+        // (если приложение открыто через startapp=room_ID)
         // ---------------------------------------------------------------------------------
+        document.getElementById('menu-car-render').innerHTML = renderCarVisual(chosenCar, 74);
+        document.getElementById('main-car-name').innerText = chosenCar.name;
         checkSubscriptionReal();
         tryAutoJoinFromStartParam();
     </script>
