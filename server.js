@@ -184,6 +184,7 @@ function startRace(roomId) {
     if (!room) return;
     room.state = 'racing';
     room.startedAt = Date.now();
+    room.finishVotes = new Set(); // per-room, not per-connection — иначе финиш никогда не набирался при >1 игроке
     const players = [...room.players.entries()].map(([id, p]) => ({ id, name: p.name, car: p.car }));
     const msg = JSON.stringify({ type: 'race_start', seed: Date.now(), players });
     room.players.forEach(p => { if (p.ws.readyState === WebSocket.OPEN) p.ws.send(msg); });
@@ -194,12 +195,18 @@ function startRace(roomId) {
         const posMsg = JSON.stringify({ type: 'positions', players: positions });
         room.players.forEach(p => { if (p.ws.readyState === WebSocket.OPEN) p.ws.send(posMsg); });
     }, 100);
+
+    // Подстраховка: гонка длится 30с на клиенте — если кто-то не пришлёт "финиш"
+    // (потерял соединение, закрыл приложение), сервер всё равно закроет заезд сам,
+    // чтобы у остальных не зависал экран и начислялись монеты.
+    room.finishTimeout = setTimeout(() => finishRace(roomId), 33000);
 }
 
 function finishRace(roomId) {
     const room = rooms.get(roomId);
-    if (!room) return;
+    if (!room || room.state === 'finished') return; // защита от повторного вызова
     clearInterval(room.tickInterval);
+    clearTimeout(room.finishTimeout);
     room.state = 'finished';
     const standings = [...room.players.entries()]
         .map(([id, p]) => ({ id, name: p.name, distance: p.distance || 0 }))
@@ -212,7 +219,6 @@ function finishRace(roomId) {
 wss.on('connection', (ws) => {
     let currentRoomId = null;
     let currentUserId = null;
-    let finishVotes = new Set();
 
     ws.on('message', (raw) => {
         let msg;
@@ -273,17 +279,17 @@ wss.on('connection', (ws) => {
             }
             case 'race_finished_client': {
                 const room = rooms.get(currentRoomId);
-                if (!room) return;
-                finishVotes.add(currentUserId);
-                // когда все игроки в комнате прислали финиш — считаем гонку завершенной
-                if (finishVotes.size >= room.players.size) finishRace(currentRoomId);
+                if (!room || !room.finishVotes) return;
+                room.finishVotes.add(currentUserId);
+                // когда все игроки в комнате прислали финиш — считаем гонку завершенной раньше таймаута
+                if (room.finishVotes.size >= room.players.size) finishRace(currentRoomId);
                 break;
             }
             case 'leave_room': {
                 const room = rooms.get(currentRoomId);
                 if (room) {
                     room.players.delete(currentUserId);
-                    if (room.players.size === 0) { clearInterval(room.tickInterval); rooms.delete(currentRoomId); }
+                    if (room.players.size === 0) { clearInterval(room.tickInterval); clearTimeout(room.finishTimeout); rooms.delete(currentRoomId); }
                     else broadcastRoom(currentRoomId);
                 }
                 currentRoomId = null; currentUserId = null;
@@ -296,11 +302,10 @@ wss.on('connection', (ws) => {
         const room = rooms.get(currentRoomId);
         if (room) {
             room.players.delete(currentUserId);
-            if (room.players.size === 0) { clearInterval(room.tickInterval); rooms.delete(currentRoomId); }
+            if (room.players.size === 0) { clearInterval(room.tickInterval); clearTimeout(room.finishTimeout); rooms.delete(currentRoomId); }
             else broadcastRoom(currentRoomId);
         }
     });
 });
 
 server.listen(PORT, () => console.log(`CCD RACE backend listening on :${PORT}`));
-
