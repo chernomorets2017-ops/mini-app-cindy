@@ -76,7 +76,7 @@
         }
         @keyframes rotateGlow { to { transform: rotate(360deg); } }
         .car-render-zone { width: 74px; height: 74px; display: flex; align-items: center; justify-content: center; font-size: 46px; line-height: 1; overflow: hidden; background-position: center; background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 4px 6px rgba(20,20,30,0.15)); z-index: 1; }
-        .car-name { font-weight: 800; letter-spacing: 0.5px; z-index: 1; margin-top: 4px; }
+        .car-name { font-weight: 900; letter-spacing: 0.5px; z-index: 1; margin-top: 6px; color: var(--accent-color); text-align: center; width: 100%; }
 
         /* Гараж — более выразительная витрина: тёмная карточка со свечением и бейджем редкости */
         .garage-showcase {
@@ -85,7 +85,7 @@
             border: 1px solid #2a2d38;
             box-shadow: 0 14px 30px rgba(20,20,30,0.28), inset 0 0 40px rgba(255,23,68,0.08);
         }
-        .garage-showcase .car-name { color: #fff; font-size: 17px; text-shadow: 0 0 10px rgba(255,255,255,0.15); }
+        .garage-showcase .car-name { color: #ff3b5c; font-size: 17px; text-shadow: 0 0 12px rgba(255,23,68,0.5); }
         .car-render-zone-lg { width: 92px; height: 92px; font-size: 60px; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.5)); }
         .garage-rarity-badge {
             position: absolute; top: 14px; left: 14px; z-index: 2; font-size: 9px; font-weight: 900; letter-spacing: 1px;
@@ -112,14 +112,14 @@
         }
         .mode-carousel::-webkit-scrollbar { display: none; }
         .mode-card {
-            flex: 0 0 74%; scroll-snap-align: center; border-radius: 30px; padding: 16px;
+            flex: 0 0 72%; scroll-snap-align: center; border-radius: 30px; padding: 16px;
             display: flex; flex-direction: column; gap: 4px; cursor: pointer; color: #fff;
             box-shadow: 0 10px 22px rgba(20,20,30,0.14); border: 1px solid rgba(255,255,255,0.12);
             min-height: 128px; box-sizing: border-box; overflow: hidden; justify-content: center;
         }
-        .mode-card.mode-friend { background: linear-gradient(150deg, #9a6bff, #6a3dd6); }
-        .mode-card.mode-public { background: linear-gradient(150deg, #ff9a4d, #e0601a); }
-        .mode-card.mode-bot { background: linear-gradient(150deg, #26d9e8, #00838f); }
+        .mode-card.mode-friend { background: linear-gradient(150deg, #2a2d38, #101116); border-color: rgba(255,23,68,0.35); box-shadow: 0 10px 22px rgba(20,20,30,0.14), inset 0 0 24px rgba(255,23,68,0.12); }
+        .mode-card.mode-public { background: linear-gradient(150deg, #ff2e55, #b0102f); }
+        .mode-card.mode-bot { background: linear-gradient(150deg, #101116, #05060a); border-color: rgba(255,23,68,0.35); box-shadow: 0 10px 22px rgba(20,20,30,0.14), inset 0 0 24px rgba(255,23,68,0.12); }
         .mode-icon { font-size: 28px; line-height: 1; }
         .mode-title { font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; }
         .mode-desc { font-size: 11px; opacity: 0.95; font-weight: 600; line-height: 1.35; }
@@ -1128,9 +1128,9 @@
         }
 
         const DIFFICULTY_PROFILES = {
-            easy:   { topSpeed: [145, 180], mistakeChance: 0.045, perfectStartChance: 0.15, badStartChance: 0.22, driftChance: 0.025, accelJitter: 7.5, aggression: 0.15 },
-            medium: { topSpeed: [180, 222], mistakeChance: 0.02,  perfectStartChance: 0.32, badStartChance: 0.08, driftChance: 0.012, accelJitter: 9.5, aggression: 0.35 },
-            hard:   { topSpeed: [220, 262], mistakeChance: 0.008, perfectStartChance: 0.55, badStartChance: 0.02, driftChance: 0.007, accelJitter: 11.5, aggression: 0.6 },
+            easy:   { topSpeed: [65, 100],  mistakeChance: 0.045, perfectStartChance: 0.15, badStartChance: 0.22, driftChance: 0.025, accelJitter: 5,    aggression: 0.15 },
+            medium: { topSpeed: [130, 175], mistakeChance: 0.02,  perfectStartChance: 0.32, badStartChance: 0.08, driftChance: 0.012, accelJitter: 8.5,  aggression: 0.35 },
+            hard:   { topSpeed: [210, 270], mistakeChance: 0.008, perfectStartChance: 0.55, badStartChance: 0.02, driftChance: 0.007, accelJitter: 11.5, aggression: 0.6 },
         };
 
         function createBotAI(name, difficulty) {
@@ -1280,15 +1280,16 @@
             return { label: 'БАЗОВАЯ', cls: '' };
         }
 
-        // Градация по скорости — чем дороже машина, тем выше максималка и резвее разгон.
+        // Градация по скорости — реальный разброс 60-300, чтобы разница между машинами
+        // ощущалась на приборке, а не терялась в паре десятков км/ч.
         // Влияет на реальную физику заезда (см. doTap/updatePhysicsLoop), не только на вид.
         function carPerf(price) {
-            if (price >= 8000)  return { topSpeed: 300, accel: 16, label: 'МАКС. СКОРОСТЬ' };
-            if (price >= 5000)  return { topSpeed: 285, accel: 15, label: 'ОЧЕНЬ БЫСТРАЯ' };
-            if (price >= 3000)  return { topSpeed: 270, accel: 14, label: 'БЫСТРАЯ' };
-            if (price >= 1200)  return { topSpeed: 255, accel: 13, label: 'ПРОВОРНАЯ' };
-            if (price >= 300)   return { topSpeed: 235, accel: 11, label: 'СРЕДНЯЯ' };
-            return { topSpeed: 215, accel: 10, label: 'НАЧАЛЬНАЯ' };
+            if (price >= 8000)  return { topSpeed: 300, accel: 16,   label: 'МАКС. СКОРОСТЬ' };
+            if (price >= 5000)  return { topSpeed: 260, accel: 13.5, label: 'ОЧЕНЬ БЫСТРАЯ' };
+            if (price >= 3000)  return { topSpeed: 215, accel: 11,   label: 'БЫСТРАЯ' };
+            if (price >= 1200)  return { topSpeed: 175, accel: 9.5,  label: 'ПРОВОРНАЯ' };
+            if (price >= 300)   return { topSpeed: 135, accel: 8,    label: 'СРЕДНЯЯ' };
+            return { topSpeed: 60, accel: 5, label: 'НАЧАЛЬНАЯ' };
         }
 
         function selectCar(car) {
@@ -1433,7 +1434,7 @@
                 racer.element.style.left = `${visualLeft}px`;
             });
 
-            document.getElementById('gameSpeed').innerText = Math.floor(playerSpeed * 1.35);
+            document.getElementById('gameSpeed').innerText = Math.floor(playerSpeed);
 
             // В реальном мультиплеере отправляем свою позицию на сервер (throttled)
             if ((currentMode === 'public' || currentMode === 'friend') && !isBotSession) {
