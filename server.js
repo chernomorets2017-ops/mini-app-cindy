@@ -25,6 +25,8 @@ const http = require('http');
 const WebSocket = require('ws');
 const TelegramBot = require('node-telegram-bot-api');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 const BOT_TOKEN = process.env.BOT_TOKEN || 'PUT_YOUR_BOT_TOKEN_HERE';
 const CHANNEL_ID = process.env.CHANNEL_ID || '@mods_ccd';           // канал для проверки подписки
@@ -38,15 +40,49 @@ app.use(express.json());
 
 // -----------------------------------------------------------------------------
 // "БД": в проде замените на Postgres/Redis. Это только чтобы сервер был рабочим.
+//
+// ВАЖНО про Render (и другие бесплатные хостинги): файловая система у них
+// эфемерная — при ПОЛНОМ передеплое (новый коммит/ручной Deploy) файл data.json
+// пропадёт вместе с контейнером. Но при обычном "заснул от простоя -> проснулся"
+// (это НЕ передеплой) диск обычно сохраняется, так что этот файл переживёт
+// большинство случаев обнуления. Если нужна гарантия на 100% (в т.ч. после
+// передеплоя) — нужна внешняя БД (Render Postgres, Upstash Redis и т.п.), это
+// отдельная доработка.
 // -----------------------------------------------------------------------------
-const balances = new Map();   // userId -> coins
+const DATA_FILE = path.join(__dirname, 'data.json');
+let balances = new Map();   // userId -> coins
+let leaderboard = new Map(); // userId -> { name, distance } — общий рейтинг на всех, не per-device
 const pendingInvoices = new Map(); // payload -> { userId, coinsAmount }
-const leaderboard = new Map(); // userId -> { name, distance } — общий рейтинг на всех, не per-device
+
+function loadData() {
+    try {
+        const raw = fs.readFileSync(DATA_FILE, 'utf8');
+        const parsed = JSON.parse(raw);
+        balances = new Map(parsed.balances || []);
+        leaderboard = new Map(parsed.leaderboard || []);
+        console.log(`Загружено с диска: ${balances.size} балансов, ${leaderboard.size} записей рейтинга`);
+    } catch (e) {
+        console.log('data.json не найден или битый — стартуем с чистого состояния');
+    }
+}
+function saveData() {
+    try {
+        fs.writeFileSync(DATA_FILE, JSON.stringify({
+            balances: [...balances],
+            leaderboard: [...leaderboard],
+        }));
+    } catch (e) {
+        console.error('Не удалось сохранить data.json', e.message);
+    }
+}
+loadData();
+
 
 function getBalance(userId) { return balances.get(userId) || 0; }
 function addBalance(userId, amount) {
     const next = getBalance(userId) + amount;
     balances.set(userId, next);
+    saveData();
     return next;
 }
 
@@ -113,6 +149,7 @@ app.post('/api/leaderboard/submit', (req, res) => {
     const existing = leaderboard.get(user.id);
     if (!existing || distance > existing.distance) {
         leaderboard.set(user.id, { name, distance });
+        saveData();
     }
     res.json({ ok: true });
 });
