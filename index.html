@@ -290,7 +290,29 @@
 
         .race-chrono { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-left: 6px; }
         .chrono-box { background: #000; border: 2px solid #262a35; padding: 10px; border-radius: 12px; text-align: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
-        .chrono-time { font-family: monospace; font-size: 24px; color: #00ff66; font-weight: bold; text-shadow: 0 0 10px rgba(0,255,102,0.6); }
+        .chrono-time { font-family: monospace; font-size: 24px; color: #00ff66; font-weight: bold; text-shadow: 0 0 10px rgba(0,255,102,0.6); transition: color 0.2s; }
+        .chrono-box.urgent .chrono-time { color: #ff1744; text-shadow: 0 0 12px rgba(255,23,68,0.8); animation: chronoPulse 0.5s infinite; }
+        @keyframes chronoPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+
+        /* Флэш "ФИНИШ!" — чтобы конец гонки ощущался как пересечение финишной черты, а не обрыв по таймеру */
+        .finish-flash {
+            position: absolute; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center;
+            background:
+                repeating-linear-gradient(45deg, #000 0 18px, #fff 18px 36px);
+            animation: finishFlashPop 1.1s ease-out forwards;
+        }
+        .finish-flash.active { display: flex; }
+        .finish-flash span {
+            background: var(--accent-color); color: #fff; padding: 14px 28px; border-radius: 16px;
+            font-size: 26px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 3px solid #fff;
+        }
+        @keyframes finishFlashPop {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
 
         .huge-gas-pedal {
             width: 92px; height: 142px;
@@ -495,6 +517,7 @@
 
             <div class="road-moving-canvas" id="roadBg"></div>
             <div class="race-field-horiz" id="raceField"></div>
+            <div class="finish-flash" id="finishFlash"><span>🏁 ФИНИШ! 🏁</span></div>
         </div>
 
         <div class="bottom-control-interface">
@@ -1257,11 +1280,22 @@
             return { label: 'БАЗОВАЯ', cls: '' };
         }
 
+        // Градация по скорости — чем дороже машина, тем выше максималка и резвее разгон.
+        // Влияет на реальную физику заезда (см. doTap/updatePhysicsLoop), не только на вид.
+        function carPerf(price) {
+            if (price >= 8000)  return { topSpeed: 300, accel: 16, label: 'МАКС. СКОРОСТЬ' };
+            if (price >= 5000)  return { topSpeed: 285, accel: 15, label: 'ОЧЕНЬ БЫСТРАЯ' };
+            if (price >= 3000)  return { topSpeed: 270, accel: 14, label: 'БЫСТРАЯ' };
+            if (price >= 1200)  return { topSpeed: 255, accel: 13, label: 'ПРОВОРНАЯ' };
+            if (price >= 300)   return { topSpeed: 235, accel: 11, label: 'СРЕДНЯЯ' };
+            return { topSpeed: 215, accel: 10, label: 'НАЧАЛЬНАЯ' };
+        }
+
         function selectCar(car) {
             let isOwned = ownedCars.includes(car.id);
             const renderZone = document.getElementById('garage-car-render');
             renderZone.innerHTML = renderCarVisual(car, 92);
-            document.getElementById('garage-car-name').innerText = car.name;
+            document.getElementById('garage-car-name').innerText = '⚡ ' + carPerf(car.price).label;
 
             const rarity = carRarity(car.price);
             const badge = document.getElementById('garage-rarity-badge');
@@ -1284,7 +1318,7 @@
                 localStorage.setItem('ccd_chosen_car_id', chosenCar.id);
                 const menuRender = document.getElementById('menu-car-render');
                 menuRender.innerHTML = renderCarVisual(chosenCar, 74);
-                document.getElementById('main-car-name').innerText = chosenCar.name;
+                document.getElementById('main-car-name').innerText = '⚡ ' + carPerf(chosenCar.price).label;
                 switchScreen('screen-menu');
             } else {
                 if (userCoins >= currentGarageCar.price) {
@@ -1321,9 +1355,10 @@
             if (!raceStarted) return;
             let me = activeRacers.find(r => r.isMe);
             if (!me) return;
+            const perf = carPerf(chosenCar.price);
             if (isInDrift) { playerSpeed -= 1; return; }
-            playerSpeed += 12;
-            if (playerSpeed > 260) playerSpeed = 260;
+            playerSpeed += perf.accel;
+            if (playerSpeed > perf.topSpeed) playerSpeed = perf.topSpeed;
             safePlay(SFX.accel);
         }
 
@@ -1348,6 +1383,7 @@
                 return;
             }
             document.getElementById('gameTimerVal').innerText = raceTimeLeft.toFixed(1);
+            document.querySelector('.chrono-box').classList.toggle('urgent', raceTimeLeft <= 3);
 
             let me = activeRacers.find(r => r.isMe);
 
@@ -1388,8 +1424,8 @@
                     // через сообщение {type:'positions'} — см. applyRemotePositions(). Здесь ничего не делаем.
                 }
 
-                let visualLeft = 20 + (racer.speed / 260) * 140 + (racer.distance - playerDistance) * 0.35;
-                if (racer.isMe) visualLeft = 20 + (playerSpeed / 260) * 140;
+                let visualLeft = 20 + (racer.speed / 300) * 140 + (racer.distance - playerDistance) * 0.35;
+                if (racer.isMe) visualLeft = 20 + (playerSpeed / 300) * 140;
 
                 if (visualLeft < -60) visualLeft = -60;
                 if (visualLeft > window.innerWidth - 60) visualLeft = window.innerWidth - 60;
@@ -1425,13 +1461,23 @@
             finishResultsUI(myRank, standings.length, mine ? Math.floor(mine.distance) : Math.floor(playerDistance));
         }
 
+        function showFinishFlash() {
+            const el = document.getElementById('finishFlash');
+            el.classList.remove('active');
+            void el.offsetWidth; // restart CSS animation
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 1150);
+        }
+
         function handleRaceFinish() {
             clearInterval(gameTicker);
             gameTicker = null;
             SFX.engine.pause();
             let me = activeRacers.find(r => r.isMe);
             if (me) me.element.classList.remove('shaking');
+            document.querySelector('.chrono-box').classList.remove('urgent');
             safePlay(SFX.finish);
+            showFinishFlash();
 
             if (currentMode === 'public' || currentMode === 'friend') {
                 // Финальные места в реальном мультиплеере считает сервер и присылает 'race_finished'
@@ -1439,10 +1485,13 @@
                 return;
             }
 
-            switchScreen('screen-results');
-            activeRacers.sort((a, b) => b.distance - a.distance);
-            let myRank = activeRacers.findIndex(r => r.isMe) + 1;
-            finishResultsUI(myRank, activeRacers.length, Math.floor(playerDistance));
+            // Небольшая пауза на флэш "ФИНИШ!" — иначе гонка выглядит так, будто её просто оборвали по таймеру
+            setTimeout(() => {
+                switchScreen('screen-results');
+                activeRacers.sort((a, b) => b.distance - a.distance);
+                let myRank = activeRacers.findIndex(r => r.isMe) + 1;
+                finishResultsUI(myRank, activeRacers.length, Math.floor(playerDistance));
+            }, 1100);
         }
 
         function finishResultsUI(myRank, totalRacers, finalMeters) {
@@ -1454,7 +1503,8 @@
                 submitLeaderboardScore(finalMeters);
             }
 
-            let coinsEarned = Math.max(5, Math.floor(finalMeters / 30) + (11 - myRank) * 2);
+            let coinsEarned = Math.round(5 + Math.floor(finalMeters / 40) + (totalRacers - myRank) * 2.5);
+            coinsEarned = Math.max(5, Math.min(30, coinsEarned));
             updateCoinsLocal(coinsEarned); // игровая награда — локальная экономика; донат-монеты см. fetchBalance()
 
             document.getElementById('res-medal').innerText = myRank === 1 ? '🏆' : (myRank <= 3 ? '🥈' : '🏁');
@@ -1483,7 +1533,7 @@
         // (если приложение открыто через startapp=room_ID)
         // ---------------------------------------------------------------------------------
         document.getElementById('menu-car-render').innerHTML = renderCarVisual(chosenCar, 74);
-        document.getElementById('main-car-name').innerText = chosenCar.name;
+        document.getElementById('main-car-name').innerText = '⚡ ' + carPerf(chosenCar.price).label;
         checkSubscriptionReal(true);
         tryAutoJoinFromStartParam();
     </script>
