@@ -52,7 +52,7 @@
         .bg-decor { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
         .bg-decor span { position: absolute; opacity: 0.05; filter: grayscale(0.4); user-select: none; }
 
-        h1 { font-size: 26px; text-transform: uppercase; text-align: center; font-style: italic; letter-spacing: 3px; color: #111; margin-bottom: 4px; text-shadow: var(--neon-glow); }
+        h1 { font-size: 26px; text-transform: uppercase; text-align: center; font-style: italic; letter-spacing: 3px; color: var(--accent-color); margin-bottom: 4px; text-shadow: 0 1px 0 rgba(0,0,0,0.15), 0 0 18px rgba(255,23,68,0.35); }
         h2 { font-size: 16px; text-transform: uppercase; margin-bottom: 8px; font-style: italic; color: #111; letter-spacing: 1px; }
         .subtitle { color: var(--text-muted); text-align: center; font-size: 11px; margin-bottom: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
@@ -751,11 +751,11 @@
         const CAR_ASSETS_PATH = "cars";
         function renderCarVisual(car, size) {
             const emojiFallback = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:${Math.round(size * 0.62)}px; line-height:1;">${carEmoji(car)}</div>`;
-            return `<div class="car-visual" style="width:${size}px;height:${size}px;position:relative;">
+            return `<div class="car-visual" style="width:${size}px;height:${size}px;position:relative;display:flex;align-items:center;justify-content:center;">
                 <img src="${CAR_ASSETS_PATH}/car_${car.id}.png" alt="${car.name}"
                      style="width:100%;height:100%;object-fit:contain;display:block;"
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <div style="display:none;">${emojiFallback}</div>
+                <div style="display:none;position:absolute;inset:0;width:100%;height:100%;">${emojiFallback}</div>
             </div>`;
         }
 
